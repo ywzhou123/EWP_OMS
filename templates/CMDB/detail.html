@@ -1,0 +1,29 @@
+
+        <div class="modal-header text-center">
+            <h4>主机 {{ host_detail.ip }} 的详细信息
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </h4>
+        </div>
+        <div class="modal-body">
+            <dl class="dl-horizontal" contenteditable="true">
+                <dt>IP地址：</dt><dd>{{ host_detail.ip }}</dd>
+                <dt>计算机全称：</dt><dd>{{ host_detail.fqdn }}</dd>
+                <dt>域名：</dt><dd>{{ host_detail.domain }}</dd>
+                <dt>MAC地址：</dt><dd>{{ host_detail.hwaddr_interfaces }}</dd>
+                <dt>CPU型号：</dt><dd>{{ host_detail.cpu_model }}</dd>
+                <dt>内核：</dt><dd>{{ host_detail.kernel }}</dd>
+                <dt>系统名称：</dt><dd>{{ host_detail.os }}</dd>
+                <dt>系统架构：</dt><dd>{{ host_detail.osarch }}</dd>
+                <dt>系统版本：</dt><dd>{{ host_detail.osrelease }}</dd>
+{#                <dt>产品名称：</dt><dd>{{ host_detail.productname }}</dd>#}
+{#                <dt>序列号：</dt><dd>{{ host_detail.serialnumber }}</dd>#}
+                <dt>服务ID：</dt><dd>{{ host_detail.server_id }}</dd>
+            </dl>
+        </div>
+        <div class="modal-footer">
+            <div class="btn-group pull-right">
+                <a class="btn btn-info" href="{% if not host_detail.salt_status %}/cmdb/initialize/{{ host_detail.id }}/{% else %}javascript:void(0);{% endif %}" {% if host_detail.salt_status %}disabled{% endif %}>初始化安装</a>
+                <a class="btn btn-info" href="/cmdb/collect/{{ host_detail.id }}/">数据采集</a>
+                <a class="btn btn-info" data-dismiss="modal">关闭</a>
+            </div>
+        </div>

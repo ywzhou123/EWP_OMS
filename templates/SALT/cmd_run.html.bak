@@ -1,0 +1,198 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% block title %}
+    <title>执行命令</title>
+    <style>
+        .panel {  margin-bottom: 0;  }
+        .alert { margin-bottom: 0; }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>
+            执行命令
+            <div class="btn-group pull-right">
+                <a class="btn btn-info " href="/admin/SALT/command/add/" target="_blank">
+                    <span class="glyphicon glyphicon-plus"></span>&nbsp;命令</a>
+            </div>
+        </h2>
+{#    主机选择面板#}
+         <div class="panel panel-default">
+             <div class="panel-heading">
+                 <h4 class="panel-title text-center" >
+                     <a data-toggle="collapse" href="#collapse1">Target</a>
+                 </h4>
+             </div>
+             <div id="collapse1" class="panel-collapse collapse in">
+                 <div class="panel-body">
+                     <div class="row">
+{#                     过滤#}
+                         <div class="col-sm-8 col-md-8">
+                             <div class="row">
+{#                             目标类型#}
+                                 <div class="col-sm-4 col-md-4">
+                                     <div class="form-group">
+                                         <label for="tgt_type">Target Type</label>
+                                         <select class="form-control" name="tgt_type" id="tgt_type">
+                                             {% for ttype in tgt_type_list %}
+                                                 <option value="{{ ttype.name }}" {% if ttype.name == 'list' %}selected{% endif %}>{{ ttype.name|title }}</option>
+                                             {% endfor %}
+                                         </select>
+                                     </div>
+                                 </div>
+{#                             目标和搜索#}
+                                 <div class="col-sm-8 col-md-8" >
+                                     <div class="btn-group">
+                                         <label for="tgt">Target</label>
+                                         <div class="input-group">
+                                             <input type="text" class="form-control" placeholder="Enter minion target pattern" id="tgt" name="tgt">
+                                             <span class="input-group-btn">
+                                                 <button class="btn btn-info" type="button" id="search"><span class="glyphicon glyphicon-search"></span></button>
+                                             </span>
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
+                             <div class="row">
+                                 {#                机房、系统#}
+                                 <div class="col-sm-4 col-md-4">
+                                     <div class="form-group">
+                                         <label for="idc">IDC</label>
+                                         <select class="form-control" name="idc" id="idc" >
+                                             <option value="">————————</option>
+                                             {% for idc in idc_list %}
+                                                 <option value="{{ idc.id }}">{{ idc.name }}</option>
+                                             {% endfor %}
+                                         </select>
+                                     </div>
+                                 </div>
+                                 {#                 系统#}
+                                 <div class="col-sm-4 col-md-4">
+                                     <div class="form-group">
+                                         <label for="system">System</label>
+                                         <select class="form-control" name="system" id="system" >
+                                             <option value="">————————</option>
+                                             {% for system in system_list %}
+                                                 <option value="{{ system.id }} ">{{ system.name }}</option>
+                                             {% endfor %}
+                                         </select>
+                                     </div>
+                                 </div>
+                                 {#                 组#}
+                                 <div class="col-sm-4 col-md-4">
+                                     <div class="form-group">
+                                         <label for="group">Group</label>
+                                         <select  class="form-control"  name="hosts" id="group" >
+                                             <option value="">————————</option>
+                                             {% for group in group_list %}
+                                                 <option value="{{ group.id }}">{{ group.name }}</option>
+                                             {% endfor %}
+                                         </select>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+{#                     主机#}
+                         <div class="col-sm-4 col-md-4">
+                             <div class="form-group">
+                                 <label for="tgt_list">Target List</label>
+                                 <select multiple="multiple" class="form-control" size="6" name="tgt_list" id="tgt_list" >
+{#                                     <option value="">————————</option>#}
+                                 </select>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+{#    命令操作面板#}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title text-center">
+                    <a data-toggle="collapse" href="#collapse2" >
+                        Command
+                    </a>
+                </h4>
+            </div>
+            <div id="collapse2" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <div class="row">
+{#                 CLIENT#}
+{#                        <div class="col-sm-2 col-md-2">#}
+{#                            <div class="form-group">#}
+{#                                <label for="client">Client</label>#}
+{#                                <select class="form-control" name="client" id="client">#}
+{#                                    {% for client in client_type_list %}#}
+{#                                        <option value="{{ client.name }}" {% if client.name == 'local_async' %}selected{% endif %}>{{ client.name }}</option>#}
+{#                                    {% endfor %}#}
+{#                                </select>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                 模块#}
+                        <div class="col-sm-2 col-md-2">
+                            <div class="form-group">
+                                <label for="module">Module</label>
+                                <select class="form-control" name="module" id="module">
+                                    <option value="">————————</option>
+                                    {% for module in module_list %}
+                                        <option value="{{ module.id }}">{{ module.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+{#                 命令#}
+                        <div class="col-sm-2 col-md-2"  >
+                            <div class="form-group">
+                                <label for="fun">Function</label>
+                                <select class="form-control" name="fun" id="fun">
+                                    <option value="">————————</option>
+                                </select>
+                            </div>
+                        </div>
+{#                 参数#}
+                        <div class="col-sm-6 col-md-6">
+                            <div class="form-group">
+                                <label for="arg">*arg</label>
+                                <input class="form-control" type="text" value="" id="arg" name="arg" placeholder="请输入参数，多个参数以逗号分隔">
+                            </div>
+                        </div>
+{#                 执行#}
+                        <div class="col-sm-2 col-md-2 ">
+                            <label for="test_ping">Execute</label>
+                            <div class="form-group ">
+                                <div class="btn-group">
+                                    <button  type="button" id="test_ping" class="btn btn-info " title="salt '*' test ping">
+                                        <span class="glyphicon glyphicon-bullhorn"></span></button>
+                                    <button type="button" id="run" class="btn btn-info" title="执行命令">
+                                        <span class="glyphicon glyphicon-play"></span> 执 行</button>
+                                    <button type="button" id="help" class="btn btn-info" title="命令帮助信息">
+                                        <span class="glyphicon glyphicon-question-sign"></span></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {#             帮助#}
+                    <div class="alert alert-info alert-dismissible" role="alert" id="doc" style="display: none;">请选择Function!</div>
+                </div>
+            </div>
+        </div>
+{#    结果展示面板#}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title text-center">
+                    <a data-toggle="collapse" href="#collapse3">
+                        Result
+                    </a>
+                </h4>
+            </div>
+            <div id="collapse3" class="panel-collapse collapse in">
+                <div class="panel-body" id="result">
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script src="{% static 'salt/js/formatJSON.js' %}"></script>
+    <script src="{% static 'salt/js/cmd_run.js' %}"></script>
+{% endblock %}

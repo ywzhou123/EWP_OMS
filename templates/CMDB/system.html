@@ -1,0 +1,42 @@
+{% extends "AUTH/navbar.html" %}
+{% block title %}<title>操作系统</title>{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>操作系统管理
+            <div class="btn-group pull-right">
+                <a class="btn btn-info" href="/admin/CMDB/systemtype/add/" target="_blank">
+                    <span class="glyphicon glyphicon-plus"></span>&nbsp;系统类型</a>
+            </div>
+        </h2>
+       <div class="table-responsive">
+            <table class="table table-hover table-bordered table-striped">
+                <thead>
+                    <tr>
+{#                        <th>系统名称</th>#}
+                        <th>系统类型</th>
+{#                        <th>服务器</th>#}
+                        <th>主机</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                {% for system in system_list %}
+                    <tbody>
+                        <tr>
+                            <td>{{ system.name }}</td>
+{#                            <td>{{ system.get_type_display }}</td>#}
+{#                            <td><a href="{% url 'cmdb:server' %}?system_id={{ system.id }}">#}
+{#                                {{ system.host_set.ip.server_set.count }}台</a></td>#}
+                            <td><a href="{% url 'cmdb:host' %}?system_id={{ system.id }}">
+                                {{ system.host_set.count }}台</a></td>
+                            <td>
+                                <a class="btn btn-info btn-xs" href="/admin/CMDB/system/{{ system.id }}/" target="_blank">
+                                    <span class="glyphicon glyphicon-edit"></span> 修 改
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>
+            RunJS 演示代码
+        </title>
+        <style>
+            #div1{
+                border:1px solid black;
+                width:300px;
+                height:200px;
+                display:none;
+                position:absolute;
+                margin-top:10px;
+                background-color:yellow;
+            }
+        </style>
+  </head>
+    <body>
+        <input type="button" value="按钮1" id="btn1">
+    <div id="div1">
+        <p>
+                这是框架里面的内容
+            </p>
+    </div>
+        <script>
+            window.onload=function(){
+                btn1.onclick=function(){
+                    div1.style.display =
+                        !div1.style.display||div1.style.display=='block' ? 'none':'block';
+                };
+            }
+        </script>
+  </body>
+</html>

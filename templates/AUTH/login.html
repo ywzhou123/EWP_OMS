@@ -1,0 +1,37 @@
+{% extends "auth/base.html" %}
+{% block head %}
+    <title>登录</title>
+    <style>body {background-color: #010504;} .login {margin-top: 70px}</style>
+{% endblock %}
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-5 col-sm-offset-3 col-md-4 col-md-offset-4">
+                <div class="login center-block">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h1 class="panel-title text-center"><strong>欢迎使用 EWP_OMS 运维管理平台！</strong></h1>
+                        </div>
+                        <div class="panel-body">
+                            <form action='.' method='post'>
+                                {% csrf_token %}
+                                <label for="username">用户名:</label>
+                                <input class="form-control" type="text" name="username" value="" id="username" placeholder="username" required><br>
+                                <label for="password">密码:</label>
+                                <input class="form-control" type="password" name="password" value="" id="password" placeholder="password" required><br>
+                                <div class="btn-group-justified" role="group">
+                                    <div class="btn-group" role="group">
+                                        <button type="submit" class="btn btn-default">登 录</button>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="next" value="{{ next }}" />
+                                <script type="text/javascript">document.getElementById("username").focus();</script>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

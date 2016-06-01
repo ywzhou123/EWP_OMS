@@ -1,0 +1,59 @@
+{% extends "AUTH/navbar.html" %}
+{% block title %}<title>网络设备</title>{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>网络设备资产管理
+            <div class="btn-group pull-right">
+                <div class="btn-group dropdown">
+                    <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                        <span class="glyphicon glyphicon-filter"></span>&nbsp;机房&nbsp;<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{% url 'cmdb:network' %}">所有机房</a></li>
+                        {% for idc in idc_list %}
+                        <li><a href="{% url 'cmdb:network' %}?idc_id={{ idc.id }}">{{ idc.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <a class="btn btn-info" href="/admin/CMDB/network/add/" target="_blank">
+                    <span class="glyphicon glyphicon-plus"></span>&nbsp;网络设备</a>
+            </div>
+        </h2>
+       <div class="table-responsive">
+            <table class="table table-hover table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>品牌</th>
+                        <th>型号</th>
+                        <th>外网IP</th>
+                        <th>内网IP</th>
+                        <th>所属机房</th>
+                        <th>说明</th>
+                        <th>链接</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                {% for net in net_list %}
+                    <tbody>
+                        <tr>
+                            <td>{{ net.name }}</td>
+                            <td>{{ net.brand }}</td>
+                            <td>{{ net.model }}</td>
+                            <td>{{ net.ip_out }}</td>
+                            <td>{{ net.ip_in }}</td>
+                            <td>{{ net.idc }}</td>
+                            <td>{{ net.info }}</td>
+                            <td><a class="btn btn-info btn-xs"  href="{{ net.url }}" target="_blank">
+                                <span class="glyphicon glyphicon-link"></span>&nbsp;链&nbsp;接</a></td>
+                            <td>
+                                <a class="btn btn-info btn-xs" href="/admin/CMDB/network/{{ net.id }}/" target="_blank">
+                                    <span class="glyphicon glyphicon-edit"></span>&nbsp;修&nbsp;改
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}

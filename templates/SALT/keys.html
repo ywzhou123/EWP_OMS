@@ -1,0 +1,89 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% load pagination_tags %}
+{% block title %}
+    <title>Salt认证管理</title>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>
+            Salt认证管理
+            <label for="idc" class="sr-only"></label>
+            <div class="btn-group pull-right">
+                <select class="btn btn-success" id="idc">
+                    {% for i in idc_list %}
+                    <option value="{{ i.id }}" {% if i.id == idc %}selected="selected"{% endif %}>{{ i}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </h2>
+    {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
+    {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
+        <div class="row">
+            <div class="col-sm-6 col-md-6 col-lg-6 text-center">
+                <h3>已接受的KEY</h3>
+                {% if minions %}
+                {% autopaginate minions 8 %}
+                {% endif %}
+                <div class="table-responsive" >
+                    <table class="table table-hover table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th class="text-center">KeyID</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        {% for minion in minions %}
+                            <tbody>
+                                <tr>
+                                    <td>{{ minion }}</td>
+                                    <td>
+                                        <a class="btn btn-danger btn-xs" href="{% url 'salt:keys' %}?idc={{ idc }}&key={{ minion }}&active=del">
+                                            <span class="glyphicon glyphicon-remove"></span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        {% endfor %}
+                    </table>
+                </div>
+                {% paginate %}
+            </div>
+            <div class="col-sm-6 col-md-6 col-lg-6 text-center">
+                <h3>未接受的KEY</h3>
+                <div class="table-responsive" >
+                    <table class="table table-hover table-bordered table-striped text-center">
+                        <thead>
+                            <tr>
+                                <th class="text-center">KeyID</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        {% for minion_pre in minions_pre %}
+                            <tbody>
+                                <tr>
+                                    <td>{{ minion_pre }}</td>
+                                    <td>
+                                        <a class="btn btn-success btn-xs" href="{% url 'salt:keys' %}?idc={{ idc }}&key={{ minion_pre }}&active=accept">
+                                            <span class="glyphicon glyphicon-ok"></span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}
+{% block scripts %}
+    <script>
+    $('#idc').change(function(){
+        var idc=$(this).val();
+        window.location.href='{% url 'salt:keys' %}?idc='+idc;
+    });
+    </script>
+{% endblock %}

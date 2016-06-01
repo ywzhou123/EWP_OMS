@@ -1,0 +1,102 @@
+{% extends "auth/base.html" %}
+{% load staticfiles %}
+{% block head %}
+    <style>
+        body { padding-top: 50px;}
+        .border {border: 1px solid #bababa;border-radius:10px;margin-top: 2px;}
+        .dropdown-menu {margin:0;}
+    </style>
+    {% block title %}{% endblock %}
+{% endblock %}
+{% block body %}
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+{#                导航栏高50，LOGO高40，设顶距为5即居中#}
+                <img src="{% static 'auth/img/logo.png' %}"  style="padding-top: 5px;" alt="LOGO" align="left"/>
+                <a class="navbar-brand" href="{% url 'auth:index' %}" title="首页">
+                    EWP_OMS 运维管理系统
+                </a>
+            </div>
+            <div id="navbar" class="collapse navbar-collapse bs-navbar-collapse">
+                <ul class="nav navbar-nav" >
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <span class="glyphicon glyphicon-list-alt"></span>&nbsp;资产管理<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'cmdb:idc' %}">数据中心</a></li>
+                            <li><a href="{% url 'cmdb:server' %}">服务器</a></li>
+                            <li><a href="{% url 'cmdb:host' %}">主机列表</a></li>
+                            <li><a href="{% url 'cmdb:network' %}">网络设备</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'cmdb:system' %}">操作系统</a></li>
+                        </ul>
+                    </li><li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <span class="glyphicon glyphicon-stats"></span>&nbsp;监控平台<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Dashboard</a></li>
+                            <li><a href="#">系统性能</a></li>
+                            <li><a href="#">应用状态</a></li>
+                            <li><a href="#">SQL性能</a></li>
+                            <li><a href="#">WEB性能</a></li>
+                        </ul>
+                    </li><li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <span class="glyphicon glyphicon-tasks"></span>&nbsp;运维管理<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'salt:execute' %}">执行命令</a></li>
+                            <li><a href="{% url 'salt:result' %}">执行结果</a></li>
+                            <li><a href="{% url 'salt:file_local' %}">本地文件</a></li>
+                            <li><a href="{% url 'salt:file_remote' %}">远程文件</a></li>
+                            <li><a href="">代码发布</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'salt:keys' %}">Salt认证管理</a></li>
+                            <li><a href="{% url 'salt:server' %}">Salt接口配置</a></li>
+                        </ul>
+                    </li><li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <span class="glyphicon glyphicon-equalizer"></span>&nbsp;操作记录<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">登陆日志</a></li>
+                            <li><a href="#">操作日志</a></li>
+                            <li><a href="#">历史命令</a></li>
+                            <li><a href="#">发布记录</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right" >
+                    <li><p class="navbar-text">欢迎</p></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <img class="img-circle" src="{% static 'auth/img/user.png' %}" height="20px">&nbsp;{{ user.username }} <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'auth:user' %}"><span class="glyphicon glyphicon-user" ></span>&#12288;个人信息</a></li>
+                            <li><a href="{% url 'auth:password' %}"><span class="glyphicon glyphicon-cog" ></span>&#12288;修改密码</a></li>
+                            <li><a href="/admin" target="_blank"><span class="glyphicon glyphicon-briefcase" ></span>&#12288;后台管理</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'auth:logout' %}"><span class="glyphicon glyphicon-log-out" ></span>&#12288;退出</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% block content %}{% endblock %}
+    {% block scripts %}{% endblock %}
+{#    鼠标滑过下拉纳入自动展开，鼠标移开自动关闭#}
+    <script>
+        $('.dropdown').mouseover(function() {
+            $(this).addClass('open');
+        })
+                .mouseout(function() {
+                    $(this).removeClass('open');
+                });
+    </script>
+{% endblock %}

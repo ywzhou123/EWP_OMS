@@ -1,0 +1,65 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% load pagination_tags %}
+{% block title %}<title>Salt结果</title>{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>Salt结果列表</h2>
+        {% autopaginate result_list 20 %}
+        {% for result in result_list %}
+            <div class="container-fluid">
+                <div class="row">
+                    <label class="label {% if result.result and result.result != '{}' %}label-success{% else %}label-danger{% endif %}" id="status_{{ result.jid }}">
+                        <span class="glyphicon glyphicon-paperclip"></span></label>
+                    <label class="label label-info">{{ result.datetime }}</label>
+                    <label class="label label-primary">{{ result.jid }}</label>
+                    <label class="label label-default">{{ result.fun }}{% if result.arg %}&nbsp;&nbsp;{{ result.arg }}{% endif %}</label>
+                    <label class="label label-default" title="{{ result.minions }}">{{ result.minions|truncatechars:100 }}</label>
+                    <button class="btn btn-info btn-xs" onclick="jid_info('{{ result.jid }}')" id="btn_{{ result.jid }}">Result<span class="caret"></span></button>
+                </div>
+                <div class="row border" id="result_{{ result.jid }}" style="display: none;"></div>
+            </div>
+        {% endfor %}
+        {% paginate %}
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script src="{% static 'salt/js/formatJSON.js' %}"></script>
+    <script>
+    function jid_info(jid){
+        var r = $('#result_'+jid).html();
+        if( !r ){
+            var b = $('#btn_'+jid);
+            b.attr("disabled", true); //从后台获取数据期间禁用按钮，防止重复点击
+            $.getJSON("{% url 'salt:jid_info' %}",{jid:jid},function(result) {
+                for (var k in result){
+                    var v = result[k]['return'];
+                    if (typeof v != 'object') {
+                        var option = v;
+                        item = "<strong>"+k+":</strong>&nbsp;"+option+"</br>";
+                        $('#result_'+jid).append(item);
+                    }
+                    else {
+                        option = formatJson(v, true);
+                        item = '<strong>'+k+':</strong>&nbsp;' +
+                                '<button class="btn btn-default btn-xs" onclick="div_display(\'return_'+jid+'_'+k+'\')">' +
+                                'Return<span class="caret"></span></button><br>'+
+                                '<div id="return_'+jid+'_'+k+'" style="display: none;">'+option+'</div>';
+                        $('#result_'+jid).append(item);
+                    }
+                }
+                if(r) {
+                    $('#status_' + jid).removeClass('label-danger').addClass('label-success');
+                }
+                b.attr("disabled", false);
+            });
+        }
+        div_display('result_'+jid);
+    }
+    //控制显示功能
+    function div_display(obj) {
+        var id = document.getElementById(obj);
+        id.style.display = !id.style.display||id.style.display=='block' ? 'none':'block';
+    }
+    </script>
+{% endblock %}

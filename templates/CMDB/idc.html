@@ -1,0 +1,63 @@
+{% extends "AUTH/navbar.html" %}
+{% block title %}<title>OMS｜资产管理｜数据中心资产</title>{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>数据中心资产管理
+            <span class="pull-right">
+                <a class="btn btn-info" href="/admin/CMDB/idc/add/" target="_blank">
+                    <span class="glyphicon glyphicon-plus"></span>&nbsp;数据中心</a>
+            </span>
+        </h2>
+       <div class="table-responsive">
+            <table class="table table-hover table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>机房名称</th>
+                        <th>机房类型</th>
+                        <th>机房地址</th>
+                        <th>联系方式</th>
+                        <th>租赁日期</th>
+                        <th>到期日期</th>
+                        <th>租赁费用</th>
+                        <th>服务器</th>
+                        <th>主机</th>
+                        <th>网络</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                {% for idc in idc_list %}
+                    <tbody>
+                        <tr>
+                            <td>{{ idc.name }}</td>
+                            <td>{{ idc.get_type_display }}</td>
+                            <td>{{ idc.address }}</td>
+                            <td>{{ idc.contact }}</td>
+                            <td>{{ idc.start_date }}</td>
+                            <td>{{ idc.end_date }}</td>
+                            <td>{{ idc.cost }}</td>
+                            <td><a href="{% url 'cmdb:server' %}?idc_id={{ idc.id }}">
+                                {{ idc.server_set.count }}台</a></td>
+                            <td>
+                                <a href="{% url 'cmdb:host' %}?idc_id={{ idc.id }}">
+                                    {% for k,v in count.items %}
+                                        {% if k == idc.id %}
+                                            {{ v }}台
+                                        {% endif %}
+                                    {% endfor %}
+                                    </a>
+                            </td>
+                            <td><a href="{% url 'cmdb:network' %}?idc_id={{ idc.id }}">
+                                {{ idc.network_set.count }}台</a></td>
+                            <td>
+                                <a class="btn btn-info btn-xs" href="/admin/CMDB/idc/{{ idc.id }}/" target="_blank">
+                                    <span class="glyphicon glyphicon-edit"></span>&nbsp;修&nbsp;改
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}
+

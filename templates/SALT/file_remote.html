@@ -1,0 +1,154 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% block title %}
+    <title>远程文件管理</title>
+    <style>
+        .panel {  margin-bottom: 0;  }
+        textarea {
+{#            white-space: pre;#}
+{#            font-family: Courier, monospace;#}
+            width:100%;
+{#            height:480px;#}
+            background-color: #bababa;
+{#            color: #08ff1d;#}
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>
+            <div class="row">
+                <div class="col-sm-12 col-md-12 col-lg-12">
+                    远程文件管理
+                </div>
+            </div>
+        </h2>
+{#    主机选择面板#}
+        <div class="panel panel-default">
+             <div class="panel-heading">
+                 <h4 class="panel-title text-center" >
+                     <a data-toggle="collapse" href="#collapse1">Target</a>
+                 </h4>
+             </div>
+             <div id="collapse1" class="panel-collapse collapse in">
+                 <div class="panel-body">
+                     <div class="row">
+                         {#                机房#}
+                         <div class="col-sm-4 col-md-4">
+                             <div class="form-group">
+                                 <label for="idc">IDC</label>
+                                 <select class="form-control" name="idc" id="idc" >
+                                     <option value="">————————</option>
+                                     {% for idc in idc_list %}
+                                         <option value="{{ idc.id }}">{{ idc.name }}</option>
+                                     {% endfor %}
+                                 </select>
+                             </div>
+                         </div>
+                         {#                 系统#}
+                         <div class="col-sm-4 col-md-4">
+                             <div class="form-group">
+                                 <label for="system">System</label>
+                                 <select class="form-control" name="system" id="system" >
+                                     <option value="">————————</option>
+                                     {% for system in system_list %}
+                                         <option value="{{ system.id }} ">{{ system.name }}</option>
+                                     {% endfor %}
+                                 </select>
+                             </div>
+                         </div>
+                         {#                 组#}
+                         <div class="col-sm-4 col-md-4">
+                             <div class="form-group">
+                                 <label for="group">Group</label>
+                                 <select  class="form-control"  name="hosts" id="group" >
+                                     <option value="">————————</option>
+                                     {% for group in group_list %}
+                                         <option value="{{ group.id }}">{{ group.name }}</option>
+                                     {% endfor %}
+                                 </select>
+                             </div>
+                         </div>
+
+                     </div>
+                     <div class="row">
+                         {#                搜索#}
+                         <div class="col-sm-4 col-md-4" >
+                             <div class="btn-group">
+                                 <label for="tgt">Search</label>
+                                 <div class="input-group">
+                                     <input type="text" class="form-control" placeholder="Enter minion target pattern" id="tgt" name="tgt">
+                                     <span class="input-group-btn">
+                                         <button class="btn btn-info" type="button" id="search"><span class="glyphicon glyphicon-search"></span></button>
+                                     </span>
+                                 </div>
+                             </div>
+                         </div>
+                         {#                     Minion#}
+                         <div class="col-sm-8 col-md-8">
+                             <div class="form-group">
+                                 <label for="tgt_list">Minion</label>
+                                 <select class="form-control" name="tgt_list" id="tgt_list" ></select>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+{#    文件展示面板#}
+        <div class="panel panel-default">
+             <div class="panel-heading">
+                 <h4 class="panel-title text-center" >
+                     <a data-toggle="collapse" href="#collapse2">Master File View</a>
+                 </h4>
+             </div>
+             <div id="collapse2" class="panel-collapse collapse in">
+                 <div class="panel-body">
+                     <div class="row">
+                         {#               路径搜索#}
+                         <div class="col-sm-4 col-md-4" >
+{#                             PATH#}
+                             <div class="row">
+                                 <div class="col-sm-12 col-md-12" >
+                                     <div class="btn-group">
+                                         <label for="tgt">Path</label>
+                                         <div class="input-group">
+                                             <input type="text" class="form-control" placeholder="Enter master file path. Ex: /srv/salt" id="path" name="path">
+                                             <span class="input-group-btn">
+                                                 <button class="btn btn-info" type="button" id="path_search"><span class="glyphicon glyphicon-search"></span></button>
+{#                                                 <button class="btn btn-info" type="button" id="path_create"  data-toggle="modal" data-target="#modal_create"><span class="glyphicon glyphicon-plus"></span></button>#}
+                                             </span>
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
+{#                             FILE LIST#}
+                             <div class="row">
+                                 <div class="col-sm-12 col-md-12" >
+                                     <div class="form-group">
+                                         <p id="file_list"></p>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                         {#                内容#}
+                         <div class="col-sm-8 col-md-8" >
+                             <div class="form-group">
+                                 <label for="file_content">File Content</label>
+                                 <code id="file_path2"></code>
+                                 <textarea id="file_content"></textarea>
+                             </div>
+{#                             <button type="button" class="btn btn-info btn-block pull-right" id="file_write">#}
+{#                                 <span class="glyphicon glyphicon-floppy-save"></span> 保 存</button>#}
+                         </div>
+                     </div>
+                 </div>
+             </div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script src="{% static 'salt/js/formatJSON.js' %}"></script>
+    <script src="{% static 'salt/js/cmd_run.js' %}"></script>
+    <script src="{% static 'salt/js/file.js' %}"></script>
+{% endblock %}

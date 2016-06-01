@@ -1,0 +1,23 @@
+{% extends "AUTH/navbar.html" %}
+{% block title %}<title>首页</title>{% endblock %}
+{% block content %}
+    <div class="container">
+    <h1></h1>
+        <div class="jumbotron">
+            <h1>欢迎来到 “EWP_OMS 运维管理系统”</h1>
+            <p>
+                EWP_OMS是基于Bootsrap前端技术+Django后台技术+Python语言开发的；结构上以Nginx+WSGI+Django为展示层，以rpyc
+                为传输层，以saltstack为控制层，以windows server和linux系统的虚拟机为被控应用层；实现系统状态监控、文件操作、
+                代码发布、IIS操作、数据收集、分析统计等运维管理自动化功能。
+            </p>
+            <p align="right">
+                <a class="btn btn-primary btn-lg" href="http://ywzhou.blog.51cto.com/" role="button" target="_blank">
+                    访问作者博客
+                </a>
+                <a  class="btn btn-primary btn-lg" target="_blank"  href="http://shang.qq.com/wpa/qunwpa?idkey=29dc2528e924a31aae335f8312d82bd8619cef352296eba527d5ca900950283b">
+                    加入QQ群
+                </a>
+            </p>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% block title %}
+    <title>Minions管理</title>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>
+            Minions管理
+            <div class="btn-group pull-right">
+                <select class="form-control" id="idc">
+                    {% for i in idc_list %}
+                    <option value="{{ i.id }}" {% if i.id == idc %}selected="selected"{% endif %}>{{ i}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </h2>
+    {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
+    {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
+
+        <h3>在线</h3>
+        <div class="row">
+            {% for minion in minions_up%}
+                {{ minion }}
+            {% endfor %}
+        </div>
+        <h3>下线</h3>
+        <div class="row">
+            {% for minion in minions_down%}
+                {{ minion }}
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}
+{% block scripts %}
+    <script>
+    $('#idc').change(function(){
+        var idc=$(this).val();
+        window.location.href='{% url 'salt:minions' %}?idc='+idc;
+    });
+    </script>
+{% endblock %}

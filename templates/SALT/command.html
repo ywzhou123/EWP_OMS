@@ -1,0 +1,87 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% load pagination_tags %}
+{% block title %}<title>Salt命令</title>{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>
+            Salt命令列表
+            <div class="btn-group pull-right">
+                <div class="btn-group dropdown">
+                    <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                        <span class="glyphicon glyphicon-filter"></span>&nbsp;模块&nbsp;<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{% url 'salt:command' %}">所有模块</a></li>
+                        {% for module in module_list %}
+                        <li><a href="{% url 'salt:command' %}?module_id={{ module.id }}">{{ module.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <a class="btn btn-info " href="{% url 'salt:cmd_doc' %}">
+                    <span class="glyphicon glyphicon-cloud-download"></span>&nbsp;采集信息</a>
+            </div>
+        </h2>
+        {% autopaginate cmd_list 8 %}
+        <div class="table-responsive">
+             <table class="table table-hover table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th><a href="https://docs.saltstack.com/en/latest/ref/modules/all/index.html" title="官方模块文档" target="_blank">模块</a></th>
+                        <th>命令</th>
+                        <th>帮助文档</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                {% for cmd in cmd_list %}
+                    <tbody>
+                        <tr>
+                            <td><a href="{{ cmd.module.url }}" title="{{ cmd.module.info }}" target="_blank">{{ cmd.module }}</a></td>
+                            <td>{{ cmd.cmd }}</td>
+                            <td><button class="btn btn-info btn-xs" onclick="cmd_help('{{ cmd.cmd }}')"  data-toggle="modal" data-target="#cmd_modal">帮助文档</button></td>
+                            <td width="150">
+                                <a class="btn btn-info btn-xs" href="/admin/SALT/command/{{ cmd.id }}/" target="_blank">
+                                    <span class="glyphicon glyphicon-edit"></span>&nbsp;修&nbsp;改
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                {% endfor %}
+            </table>
+        </div>
+        {% paginate %}
+</div>
+
+<div class="modal fade" id="cmd_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4>Salt命令<code>"<span id="cmd"></span>"</code>的帮助信息
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </h4>
+            </div>
+            <div class="modal-body" id="doc">
+            </div>
+            <div class="modal-footer">
+            <div class="btn-group pull-right">
+                <a class="btn btn-info" data-dismiss="modal">关闭</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+    <script>
+    //获取命令帮助信息功能
+        function cmd_help(cmd) {
+            $('#cmd').html(cmd);
+            $.getJSON("/salt/command/",{cmd:cmd},function(result){
+                if (result) {$('#doc').html(result);}
+                else {$('#doc').html('命令"'+cmd+'"还未采集帮助文档，请点击' +
+                        '<a class="btn btn-info" href="/salt/cmd_doc/">采集信息</a>')
+                }
+            });
+            return false; //不刷新页面
+        }
+    </script>
+{% endblock %}

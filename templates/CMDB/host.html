@@ -1,0 +1,122 @@
+{% extends "AUTH/navbar.html" %}
+{% load pagination_tags %}
+{% block title %}<title>主机列表</title>{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>
+            <div class="row">
+                <div class="col-sm-4 col-md-4 col-lg-4">
+                  主机列表
+                </div>
+                <div class="col-sm-4 col-md-4 col-lg-4">
+                    <div class="btn-group">
+                        <form action="." method="post">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="按主机名称搜索..." id="hostname" name="hostname">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-info" type="submit"><span class="glyphicon glyphicon-search"></span></button>
+                                </span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-sm-4 col-md-4 col-lg-4">
+                    <div class="btn-group pull-right">
+                    <div class="btn-group dropdown">
+                        <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <span class="glyphicon glyphicon-filter"></span>&nbsp;系统&nbsp;<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'cmdb:host' %}{% if server_id %}?server_id={{ server_id }}{% elif idc_id %}?idc_id={{ idc_id }}{% endif %}">所有系统</a></li>
+                            {% for system in system_list %}
+                                <li><a href="{% url 'cmdb:host' %}?system_id={{ system.id }}{% if server_id %}&server_id={{ server_id }}{% elif idc_id %}&idc_id={{ idc_id }}{% endif %}">{{ system.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="btn-group dropdown">
+                        <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <span class="glyphicon glyphicon-filter"></span>&nbsp;服务器&nbsp;<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'cmdb:host' %}{% if system_id %}?system_id={{ system_id }}{% endif %}">所有服务器</a></li>
+                            {% for server in server_list %}
+                            <li><a href="{% url 'cmdb:host' %}?server_id={{ server.id }}{% if system_id %}&system_id={{ system_id }}{% endif %}">{{ server.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="btn-group dropdown">
+                        <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <span class="glyphicon glyphicon-filter"></span>&nbsp;机房&nbsp;<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'cmdb:host' %}{% if system_id %}?system_id={{ system_id }}{% endif %}">所有机房</a></li>
+                            {% for idc in idc_list %}
+                            <li><a href="{% url 'cmdb:host' %}?idc_id={{ idc.id }}{% if system_id %}&system_id={{ system_id }}{% endif %}">{{ idc.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <a class="btn btn-info" href="/admin/CMDB/host/add/" target="_blank"><span class="glyphicon glyphicon-plus"></span>&nbsp;主机</a>
+                </div>
+                </div>
+            </div>
+        </h2>
+
+        {% autopaginate host_list 8 %}
+        <div class="table-responsive" >
+            <table class="table table-hover table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>IP地址</th>
+                        <th>主机名称</th>
+                        <th>系统类型</th>
+                        <th>主机组</th>
+                        <th>所属服务器</th>
+                        <th>所属机房</th>
+                        <th>创建日期</th>
+                        <th>使用状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                {% for host in host_list %}
+                    <tbody>
+                        <tr class="{% if not host.ip.salt_status %}danger{% else %}success{% endif %}">
+                            <td>
+                                <a href="{% url 'cmdb:detail' host.ip %}" title="详细信息"  data-toggle="modal" data-target="#host_modal">
+                                    {{ host.ip }}
+                                </a>
+                            </td>
+                            <td>{{ host.ip.tgt_id }}</td>
+                            <td>{{ host.system_type }}</td>
+                            <td>
+                                {% for group in host.group.all %}
+                                    {{ group }}
+                                {% endfor %}
+                            </td>
+                            <td>{{ host.server.name }}</td>
+                            <td>{{ host.server.idc }}</td>
+                            <td>{{ host.start_date }}</td>
+                            <td>{{ host.status }}</td>
+                            <td>
+                                <a class="btn btn-info btn-xs" href="/admin/CMDB/host/{{ host.id }}/" target="_blank">
+                                    <span class="glyphicon glyphicon-edit"></span>&nbsp;修&nbsp;改
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                {% endfor %}
+            </table>
+        </div>
+        {% paginate %}
+    </div>
+    <div class="modal fade" id="host_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog">
+        <div class="modal-content"></div>
+      </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+         $('#host_modal').on('hidden.bs.modal', function () {
+            $(this).removeData("bs.modal")
+              ;})
+    </script>
+{% endblock %}

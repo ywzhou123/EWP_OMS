@@ -1,0 +1,46 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% block title %}
+    <title>Salt接口</title>
+{#    <style>.panel {  margin-bottom: 0;  }.alert { margin-bottom: 0; }</style>#}
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>
+            Salt接口列表
+            <small class="text-danger">注意：同一机房必须且只能设置一个Master角色。</small>
+            <span class="btn-group pull-right">
+                <a class="btn btn-info " href="/admin/SALT/saltserver/add/" target="_blank">
+                    <span class="glyphicon glyphicon-plus"></span>&nbsp;接口</a>
+            </span>
+        </h2>
+        <div class="table-responsive" >
+            <table class="table table-hover table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>所属机房</th>
+                        <th>URL地址</th>
+                        <th>角色</th>
+                        <th>账户名</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                {% for server in server_list %}
+                <tbody>
+                    <tr>
+                        <td>{{ server.idc.name }}</td>
+                        <td>{{ server.url }}</td>
+                        <td>{{ server.get_role_display }}</td>
+                        <td>{{ server.username }}</td>
+                        <td>
+                            <a class="btn btn-info btn-xs" href="/admin/SALT/saltserver/{{ server.id }}/" target="_blank">
+                                <span class="glyphicon glyphicon-edit"></span>&nbsp;修&nbsp;改
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}
