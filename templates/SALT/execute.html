@@ -25,6 +25,8 @@
                     <span class="glyphicon glyphicon-plus"></span>&nbsp;模块</a>
                 <a class="btn btn-info " href="/admin/SALT/command/add/" target="_blank">
                     <span class="glyphicon glyphicon-plus"></span>&nbsp;命令</a>
+                <button class="btn btn-info" title="命令帮助信息" onclick="cmd_help()"  data-toggle="modal" data-target="#cmd_modal">
+                    <span class="glyphicon glyphicon-question-sign"></span>&nbsp;帮助</button>
                 <select class="btn btn-info" id="idc" style="height: 34px;">
                     {% for i in idc_list %}
                         <option value="{{ i.id }}" {% if i.id == idc %}selected="selected"{% endif %}>{{ i }}</option>
@@ -75,7 +77,7 @@
                         <select class="form-control" id="module">
                             <option value="">——Module——</option>
                             {% for module in module_list %}
-                                <option value="{{ module.id }}">{{ module.name }}</option>
+                                <option value="{{ module.name }}">{{ module.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -152,6 +154,24 @@
             </div>
         </div>
     </div>
+
+<div class="modal fade" id="cmd_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4>Salt命令<code>"<span id="cmd"></span>"</code>的帮助信息
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </h4>
+            </div>
+            <div class="modal-body" id="doc"></div>
+            <div class="modal-footer">
+                <div class="btn-group pull-right">
+                    <a class="btn btn-info" data-dismiss="modal">关闭</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -182,11 +202,25 @@
                 }
                 else{minions_up.disabled=true;}
             });
+            //CLIENT+模块级联
+            $('#client').change(function () {
+                $('#module').html("<option value=''>——Module——</option>"); //初始化数据
+                var client = $(this).val();                 //获取当前选择对象的value值
+                $.getJSON("{% url 'salt:command' %}",{client:client},function(result){
+                    //返回值 result 在这里是一个列表
+                    for (var i = result.length - 1; i >= 0; i--) {
+                      // 把 result 的每一项作为选项显示在网页上
+                        $("<option value='"+result[i]+"'>"+result[i]+"</option>").appendTo("#module");
+                    }
+                });
+                return false; //不刷新页面
+            });
             //模块+命令级联
             $('#module').change(function () {
                 $('#fun').html("<option value=''>——Func——</option>"); //初始化数据
-                var module_id = $(this).val();                 //获取当前选择对象的value值
-                $.getJSON("{% url 'salt:command' %}",{module_id:module_id},function(result){
+                var module_name = $(this).val();                 //获取当前选择对象的value值
+                var client = $('#client').val();                 //获取当前选择对象的value值
+                $.getJSON("{% url 'salt:command' %}",{client:client,module_name:module_name},function(result){
                     //返回值 result 在这里是一个列表
                     for (var i = result.length - 1; i >= 0; i--) {
                       // 把 result 的每一项作为选项显示在网页上
@@ -264,6 +298,20 @@
                  if (result || count==15){window.clearInterval(timer); }
             });
             return false;
+        }
+
+        //获取命令帮助信息功能
+        function cmd_help() {
+            var cmd=$('#fun').val();
+            if (!cmd){$('#doc').html("<p class='text-center'>请选择命令！</p>");}
+            else {
+                var client = $('#client').val();
+                $('#cmd').html(cmd);
+                $.getJSON("/salt/command/", {client: client, cmd: cmd}, function (result) {
+                    $('#doc').html(result);
+                });
+                return false; //不刷新页面
+            }
         }
     </script>
 {% endblock %}

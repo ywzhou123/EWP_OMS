@@ -24,6 +24,7 @@ urlpatterns = [
     url(r'^svn/$', svn, name='svn'),
     url(r'^file_remote/$', file_remote, name='file_remote'),
     url(r'^file_list/$', file_list, name='file_list'),
+    url(r'^deploy/$', deploy, name='deploy'),
 
 
     # url(r'^file_download/(?P<file_name>.*)/$', file_download, name='file_download'),

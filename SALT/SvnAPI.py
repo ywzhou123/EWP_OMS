@@ -1,23 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from SaltAPI import SaltAPI
-import ConfigParser
+
 import svn.local,svn.remote
 import pprint
 import sys
 # reload(sys)
 # sys.setdefaultencoding( "utf-8" )
-# class SvnAPI:
-#     def __init__(self,url,username,password):
-#         self.__url = url.rstrip('/') #移除URL末尾的/
-#         self.__username = username
-#         self.__password = password
-#     def add(self):
-#         pass
-#     def update(self):
-#         pass
-#     def checkout(self):
-#         pass
+
 
 class SvnLocal:
     def __init__(self,path):

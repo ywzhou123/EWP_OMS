@@ -17,28 +17,75 @@ import re
 #获取命令
 @login_required
 def command(request):
-    cmd_list=Command.objects.order_by('cmd')
     module_id = request.GET.get('module_id')
-    if request.is_ajax() and module_id:  #按模块ID过滤
-        cmd_list = cmd_list.filter(module=module_id).order_by('cmd')
-        cmd_list = [cmd.cmd for cmd in cmd_list]
-        return JsonResponse(cmd_list,safe=False)
+    module_name = request.GET.get('module_name')
+    client = request.GET.get('client')
+    cmd = request.GET.get('cmd')
+    active = request.GET.get('active')
+    context={}
+    #命令收集
+    if active=='collect':
+        try:
+            salt_server=SaltServer.objects.all()[0]
+            sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+            funs=['doc.runner','doc.wheel','doc.execution']
+            for fun in funs:
+                result = sapi.SaltRun(fun=fun,client='runner')
+                cs=result['return'][0]
+                for c in cs:
+                    Module.objects.get_or_create(client=fun.split('.')[1],name=c.split('.')[0])
+                    module=Module.objects.get(client=fun.split('.')[1],name=c.split('.')[0])
+                    Command.objects.get_or_create(cmd=c,module=module)
+                    command=Command.objects.get(cmd=c,module=module)
+                    if not command.doc:
+                        command.doc=cs[c]
+                        command.save()
+            context['success']=u'命令收集完成！'
+        except Exception as error:
+            context['error']=error
+
+
+    cmd_list=Command.objects.order_by('cmd')
+    module_list=Module.objects.order_by('client','name')
+    #按模块过滤
+    if  request.method=='GET' and module_id:
+            cmd_list = cmd_list.filter(module=module_id)
+
+    if request.is_ajax() and client:
+        if re.search('runner',client):
+            client='runner'
+        elif re.search('wheel',client):
+            client='wheel'
+        else:
+            client='execution'
+    #命令帮助信息
+        if cmd:
+            try:
+                command=Command.objects.get(cmd=cmd,module__client=client)
+                doc=command.doc.replace("\n","<br>").replace(" ","&nbsp;")
+            except Exception as error:
+                doc=str(error)
+            return JsonResponse(doc,safe=False)
+    #请求模块下的命令
+        elif module_name:
+            cmd_list = cmd_list.filter(module__client=client,module__name=module_name).order_by('-cmd')
+            cmd_list = [cmd.cmd for cmd in cmd_list]
+            return JsonResponse(cmd_list,safe=False)
+    #请求CLIENT下的模块
+        else:
+            module_list=module_list.filter(client=client)
+            module_list=[module.name for module in module_list.order_by('-name')]
+            return JsonResponse(module_list,safe=False)
+
+    context['cmd_list']=cmd_list
+    context['module_list']=module_list
+    return render(request, 'SALT/command.html', context)
 
 #接口列表
 @login_required
 def server(request):
     server_list=SaltServer.objects.order_by('idc')
     return render(request, 'SALT/server.html', locals())
-#执行命令页面
-@login_required
-def cmd_run(request):
-    system_list = SystemType.objects.order_by('name')
-    server_list = Server.objects.order_by('name')
-    idc_list = IDC.objects.order_by('name')
-    group_list = HostGroup.objects.order_by('name')
-    module_list=Module.objects.order_by('name')
-    tgt_type_list=TargetType.objects.order_by('name')
-    return render(request, 'SALT/cmd_run.html.bak', locals())
 #目标过滤
 @login_required
 def target(request):
@@ -155,23 +202,6 @@ def jid_info(request):
             return JsonResponse(result,safe=False)
         except Exception as error:
             return JsonResponse({'error':error},safe=False)
-#命令帮助信息
-@login_required
-def cmd_doc(request):
-    salt_server = SaltServer.objects.all()[0] #选择salt接口中的第一个
-    cmd_list = Command.objects.filter(doc='') #只对未获取帮助信息的命令操作
-    sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-    for cmd in cmd_list:
-        result = sapi.SaltCmd(client='local',tgt='*',fun='sys.doc',arg=cmd.cmd) #使用local直接返回结果，不需要异步
-        print result
-#{u'return': [{u'saltminion01-41.ewp.com': {u'cmd.script': u'\n    Download a script from a remote location and execute the script locally.\n  ...
-        try:
-            cmd.doc=result['return'][0].values()[0][cmd.cmd]
-        #.replace(" ","&nbsp;")
-        except:
-            cmd.doc=u"这个命令没有帮助信息，请点击模块查看官方网站信息!"
-        cmd.save()
-    return HttpResponseRedirect(reverse('salt:command'))
 #认证KEY管理
 @login_required
 def keys(request):
@@ -203,7 +233,6 @@ def keys(request):
         context['error']=error
     print context
     return render(request,'SALT/keys.html',context)
-
 @login_required
 def minions(request):
     idc_list = IDC.objects.order_by('name')
@@ -229,7 +258,7 @@ def minions(request):
 @login_required
 def execute(request):
     idc_list = IDC.objects.order_by('name')
-    module_list=Module.objects.order_by('name')
+    module_list=Module.objects.filter(client='execution').order_by('name')
     idc=request.GET.get('idc',idc_list[0].id)
     context={'idc_list':idc_list,'module_list':module_list,'idc':long(idc)}
     try:
@@ -242,4 +271,10 @@ def execute(request):
     except Exception as error:
         context['error']=error
     return render(request,'SALT/execute.html',context)
+@login_required
+def deploy(request):
+    idc_list = IDC.objects.order_by('name')
+    idc=request.GET.get('idc',idc_list[0].id)
+    context={'idc_list':idc_list,'idc':long(idc)}
+    return render(request,'SALT/deploy.html',context)
 

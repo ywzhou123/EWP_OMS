@@ -55,10 +55,11 @@
                             <li><a href="{% url 'salt:result' %}">执行结果</a></li>
                             <li><a href="{% url 'salt:file_local' %}">本地文件</a></li>
                             <li><a href="{% url 'salt:file_remote' %}">远程文件</a></li>
-                            <li><a href="">代码发布</a></li>
+                            <li><a href="{% url 'salt:deploy' %}">代码发布</a></li>
                             <li class="divider"></li>
-                            <li><a href="{% url 'salt:keys' %}">Salt认证管理</a></li>
                             <li><a href="{% url 'salt:server' %}">Salt接口配置</a></li>
+                            <li><a href="{% url 'salt:keys' %}">Salt认证管理</a></li>
+                            <li><a href="{% url 'salt:command' %}">Salt命令管理</a></li>
                         </ul>
                     </li><li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">

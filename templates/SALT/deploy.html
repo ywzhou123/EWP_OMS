@@ -1,0 +1,34 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% block title %}
+    <title>代码发布</title>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>
+            代码发布
+            <div class="btn-group pull-right">
+                <select class="form-control" id="idc">
+                    {% for i in idc_list %}
+                    <option value="{{ i.id }}" {% if i.id == idc %}selected="selected"{% endif %}>{{ i}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </h2>
+    {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
+    {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
+
+
+
+
+
+
+{% endblock %}
+{% block scripts %}
+    <script>
+    $('#idc').change(function(){
+        var idc=$(this).val();
+        window.location.href='{% url 'salt:deploy' %}?idc='+idc;
+    });
+    </script>
+{% endblock %}
