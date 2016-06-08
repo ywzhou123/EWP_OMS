@@ -265,9 +265,9 @@ def execute(request):
         salt_server = SaltServer.objects.get(idc=idc,role='Master')
         context['salt_server']=salt_server
         sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-        status=sapi.SaltRun(client='runner',fun='manage.status')
-        context['minions_up']=status['return'][0]['up']
-        context['minions_down']=status['return'][0]['down']
+        result=sapi.SaltRun(client='runner',fun='manage.status')
+        context['minions_up']=result['return'][0]['up']
+        context['minions_down']=result['return'][0]['down']
     except Exception as error:
         context['error']=error
     return render(request,'SALT/execute.html',context)
@@ -277,4 +277,64 @@ def deploy(request):
     idc=request.GET.get('idc',idc_list[0].id)
     context={'idc_list':idc_list,'idc':long(idc)}
     return render(request,'SALT/deploy.html',context)
+@login_required
+def config(request,server_id):
+    server_list=SaltServer.objects.all()
+    salt_server = SaltServer.objects.get(id=server_id)
+    context={'server_list':server_list,'salt_server':salt_server}
+    sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+    result=sapi.SaltRun(client='wheel',fun='config.values')
+    configs=result['return'][0]['data']['return']
+    context['envs']=sorted(configs['file_roots'].keys())
+
+
+    if request.is_ajax() :
+        env=request.GET.get('env')
+        file=request.GET.get('file')
+        content=request.GET.get('content')
+        if env:
+            if file:
+                if content:#写入文件内容
+                    print content,type(content)
+                    content=u"web1:\n  host: 192.168.42.2\n  user: fred"
+                    if env:
+                        arg='path=%s,data=%s,saltenv=%s'%(file,content,env)
+                    else:
+                        arg='path=%s,data=%s'%(file,content)
+                    try:
+                        r=sapi.SaltRun(client='wheel',fun='file_roots.write',arg=arg)
+                        success=r['return'][0]['data']['success']
+                        if success:
+                            res=u"文件%s保存成功！"%file
+                        else:
+                            res=u"文件%s保存失败！"%file
+                    except Exception as error:
+                        res=str(error)
+                else:#读取环境下文件内容
+                    try:
+                        path=configs['file_roots'][env][0]+file
+                        r=sapi.SaltRun(client='wheel',fun='file_roots.read',arg='path=%s,saltenv=%s'%(path,env))
+                        res=r['return'][0]['data']['return'][0]
+                    except Exception as error:
+                        res={'Error':str(error)}
+            else:#列出环境下的文件
+                try:
+                    r=sapi.SaltRun(client='runner',fun='fileserver.file_list',arg='saltenv=%s'%env)
+                    fs=r['return'][0]
+                    res=[]
+                    for f in fs:
+                        if not re.search('.svn',f) and not re.search('pki/',f):
+                            res.append(f)
+                except Exception as error:
+                    res=[str(error)]
+        else:
+            res=None
+        print res
+        return JsonResponse(res,safe=False)
+
+    else:
+        return render(request,'SALT/config.html',context)
+
+
+
 

@@ -23,38 +23,38 @@
                 </div>
                 <div class="col-sm-4 col-md-4 col-lg-4">
                     <div class="btn-group pull-right">
-                    <div class="btn-group dropdown">
-                        <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                            <span class="glyphicon glyphicon-filter"></span>&nbsp;系统&nbsp;<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{% url 'cmdb:host' %}{% if server_id %}?server_id={{ server_id }}{% elif idc_id %}?idc_id={{ idc_id }}{% endif %}">所有系统</a></li>
-                            {% for system in system_list %}
-                                <li><a href="{% url 'cmdb:host' %}?system_id={{ system.id }}{% if server_id %}&server_id={{ server_id }}{% elif idc_id %}&idc_id={{ idc_id }}{% endif %}">{{ system.name }}</a></li>
-                            {% endfor %}
-                        </ul>
+                        <div class="btn-group dropdown">
+                            <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                <span class="glyphicon glyphicon-filter"></span>&nbsp;系统&nbsp;<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="{% url 'cmdb:host' %}{% if server_id %}?server_id={{ server_id }}{% elif idc_id %}?idc_id={{ idc_id }}{% endif %}">所有系统</a></li>
+                                {% for system in system_list %}
+                                    <li><a href="{% url 'cmdb:host' %}?system_id={{ system.id }}{% if server_id %}&server_id={{ server_id }}{% elif idc_id %}&idc_id={{ idc_id }}{% endif %}">{{ system.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="btn-group dropdown">
+                            <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                <span class="glyphicon glyphicon-filter"></span>&nbsp;服务器&nbsp;<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="{% url 'cmdb:host' %}{% if system_id %}?system_id={{ system_id }}{% endif %}">所有服务器</a></li>
+                                {% for server in server_list %}
+                                <li><a href="{% url 'cmdb:host' %}?server_id={{ server.id }}{% if system_id %}&system_id={{ system_id }}{% endif %}">{{ server.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="btn-group dropdown">
+                            <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                <span class="glyphicon glyphicon-filter"></span>&nbsp;机房&nbsp;<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="{% url 'cmdb:host' %}{% if system_id %}?system_id={{ system_id }}{% endif %}">所有机房</a></li>
+                                {% for idc in idc_list %}
+                                <li><a href="{% url 'cmdb:host' %}?idc_id={{ idc.id }}{% if system_id %}&system_id={{ system_id }}{% endif %}">{{ idc.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <a class="btn btn-info" href="/admin/CMDB/host/add/" target="_blank"><span class="glyphicon glyphicon-plus"></span>&nbsp;主机</a>
                     </div>
-                    <div class="btn-group dropdown">
-                        <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                            <span class="glyphicon glyphicon-filter"></span>&nbsp;服务器&nbsp;<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{% url 'cmdb:host' %}{% if system_id %}?system_id={{ system_id }}{% endif %}">所有服务器</a></li>
-                            {% for server in server_list %}
-                            <li><a href="{% url 'cmdb:host' %}?server_id={{ server.id }}{% if system_id %}&system_id={{ system_id }}{% endif %}">{{ server.name }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="btn-group dropdown">
-                        <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                            <span class="glyphicon glyphicon-filter"></span>&nbsp;机房&nbsp;<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{% url 'cmdb:host' %}{% if system_id %}?system_id={{ system_id }}{% endif %}">所有机房</a></li>
-                            {% for idc in idc_list %}
-                            <li><a href="{% url 'cmdb:host' %}?idc_id={{ idc.id }}{% if system_id %}&system_id={{ system_id }}{% endif %}">{{ idc.name }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <a class="btn btn-info" href="/admin/CMDB/host/add/" target="_blank"><span class="glyphicon glyphicon-plus"></span>&nbsp;主机</a>
-                </div>
                 </div>
             </div>
         </h2>

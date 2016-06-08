@@ -15,6 +15,7 @@ urlpatterns = [
     url(r'^result/$', result, name='result'),
     # url(r'^cmd_result_detail/(?P<result_id>[0-9]+)/$', cmd_result_detail, name='cmd_result_detail'),
     url(r'^jid_info/$', jid_info, name='jid_info'),
+    url(r'^config/(?P<server_id>[0-9]+)/$', config, name='config'),
     url(r'^file_local/$', file_local, name='file_local'),
     url(r'^file_create/$', file_create, name='file_create'),
     url(r'^file_rename/$', file_rename, name='file_rename'),
@@ -30,5 +31,4 @@ urlpatterns = [
     # url(r'^file_download/(?P<file_name>.*)/$', file_download, name='file_download'),
     # url(r'^media/(?P<path>.*)$','django.views.static.serve',{'document_root': settings.MEDIA_ROOT}),
     url(r'^media/(?P<path>.*)$','django.views.static.serve',{'document_root': settings.MEDIA_ROOT}),
-    # url(r'^command/(?P<module_id>[0-9]+)/$', command, name='command'),
     ]

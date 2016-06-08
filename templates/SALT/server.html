@@ -36,6 +36,9 @@
                             <a class="btn btn-info btn-xs" href="/admin/SALT/saltserver/{{ server.id }}/" target="_blank">
                                 <span class="glyphicon glyphicon-edit"></span>&nbsp;修&nbsp;改
                             </a>
+                            <a class="btn btn-info btn-xs" href="{% url 'salt:config' server.id %} " >
+                                <span class="glyphicon glyphicon-cog"></span>&nbsp;配&nbsp;置
+                            </a>
                         </td>
                     </tr>
                 </tbody>

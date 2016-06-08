@@ -3,6 +3,7 @@
 
 import urllib2, urllib, json
 import ssl
+import json
 ssl._create_default_https_context = ssl._create_unverified_context
 #Python 2.7.9 之后版本引入了一个新特性
 #当你urllib.urlopen一个 https 的时候会验证一次 SSL 证书
@@ -63,10 +64,17 @@ class SaltAPI:
         return ret
     #执行命令
     def SaltCmd(self,tgt,fun,arg=None,client='local_async',expr_form='glob'):
+        params = {'client':client, 'fun':fun, 'tgt':tgt, 'expr_form':expr_form}
         if arg:
-            params = {'client':client, 'fun':fun, 'tgt':tgt, 'arg':arg,'expr_form':expr_form}
-        else:
-            params = {'client':client, 'fun':fun, 'tgt':tgt, 'expr_form':expr_form}
+            args=[]
+            a=arg.split(',') #参数按逗号分隔
+            for i in a:
+                b=i.split('=') #每个参数再按=号分隔
+                if len(b)>1:
+                    params[b[0]]=b[1] #带=号的参数作为字典传入
+                else:
+                    args.append(b[0]) #不带=号的参数先弄成列表
+            params['arg']=' '.join(args) #再转为字符串（空格分开的）传给参数arg
         # if kwargs:
         #     params=dict(params.items()+kwargs['kwargs'].items())
         #     print kwargs
@@ -76,14 +84,21 @@ class SaltAPI:
         return res
         #{u'return': [{u'jid': u'20160331104340284003', u'minions': [u'saltminion01-41.ewp.com']}]}
     #runner=salt-run=master本地执行
-    def SaltRun(self,fun,client='runner_async',arg=None):
+    def SaltRun(self,fun,arg=None,client='runner_async'):
+        params = {'client':client, 'fun':fun}
         if arg:
-            params = {'client':client, 'fun':fun, 'arg':arg}
-        else:
-            params = {'client':client, 'fun':fun}
+            args=[]
+            a=arg.split(',') #参数按逗号分隔
+            for i in a:
+                b=i.split('=') #每个参数再按=号分隔
+                if len(b)>1:
+                    params[b[0]]=b[1] #带=号的参数作为字典传入
+                else:
+                    args.append(b[0]) #不带=号的参数先弄成列表
+            params['arg']=' '.join(args) #再转为字符串（空格分开的）传给参数arg
+        # print params
         obj = urllib.urlencode(params)
         res = self.PostRequest(obj)
-        print res
         return res
     #获取JOB ID的详细执行结果
     def SaltJob(self,jid=''):

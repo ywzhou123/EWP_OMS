@@ -1,0 +1,107 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% block title %}
+    <title>SaltMaster配置</title>
+    <style>
+        textarea {
+            white-space: pre;
+            font-family: Courier, monospace;
+            width:100%;
+            height:460px;
+            background-color: black;
+            color: #ffffff;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>
+            SaltMaster配置
+            <small class="text-danger">{{ salt_server.idc.name }} -- {{ salt_server.url }} -- {{ salt_server.role }}</small>
+            <label for="server" disabled="disabled"></label>
+            <div class="btn-group pull-right dropdown">
+                <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                    &nbsp;SaltServer&nbsp;<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    {% for s in server_list %}
+                        <li><a href="{% url 'salt:config' s.id%}">{{ s.idc.name }} -- {{ s.url }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </h2>
+        {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
+        {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
+
+        <div class="row">
+            <div class="col-xs-4 col-md-4">
+                <div class="form-group">
+                    <label for="env">环境列表</label>
+                    <select class="form-control" size="5" id="env">
+                        {% for env in envs %}
+                        <option value="{{ env }}">{{ env }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="file">文件列表</label>
+                    <select class="form-control" size="18" id="file">
+                    </select>
+                </div>
+{#                <button type="button" id="write" class="btn btn-info btn-lg btn-block">Write</button>#}
+            </div>
+            <div class="col-xs-8 col-md-8">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12">
+                        <label for="content">模块文件<code id="name"></code>的内容</label>
+                        <div class="form-group">
+                            <textarea id="content" disabled="disabled"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+</div>
+{% endblock %}
+{% block scripts %}
+    <script src="{% static 'salt/js/formatJSON.js' %}"></script>
+<script>
+    //选择环境显示文件列表
+    $('#env').change(function(){
+        var env=$(this).val() ;
+        $('#file').html("");
+        $.getJSON("{% url 'salt:config' salt_server.id %}", {env: env}, function (result) {
+             for (var i = result.length - 1; i >= 0; i--) {
+                 $("<option value='"+result[i]+"'>"+result[i]+"</option>").appendTo("#file");
+             }
+        });
+        return false;
+    });
+    //显示文件内容
+    $('#file').click(function(){
+        var file=$(this).val() ;
+        var env=$('#env').val() ;
+        $.getJSON("{% url 'salt:config' salt_server.id %}", {env: env,file:file}, function (result) {
+            var rv=document.getElementById('content');
+            for (var k in result){
+                rv.value=result[k];
+                $('#name').html(k);
+            }
+        });
+        return false;
+    });
+    //保存文件内容
+    $('#write').click(function(){
+        var env=$('#env').val() ;
+        var file=$('#file').val();
+        var content=$('#content').val() ;
+        $.getJSON("{% url 'salt:config' salt_server.id %}", {env:env,file:file,content:content}, function (result) {
+            alert(result);
+        });
+
+        return false;
+    });
+</script>
+{% endblock %}

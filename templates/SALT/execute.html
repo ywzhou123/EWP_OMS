@@ -143,7 +143,7 @@
             <div class="col-sm-9 col-md-9">
                 <div class="form-group">
                     <label for="result" > </label>
-                    <textarea id="result" readonly></textarea>
+                    <textarea id="result" readonly>[root@salt-master ~]#</textarea>
                  </div>
             </div>
         </div>
@@ -258,7 +258,8 @@
             var w=client.indexOf('wheel');
             var s=client.indexOf('ssh');
             var a=client.indexOf('async');
-            if ( r>=0 || w>=0){var command = '[root@salt-master ~]# salt-run '+fun+' '+arg}
+            if ( r>=0 ){var command = '[root@salt-master ~]# salt-run '+fun+' '+arg}
+            if ( w>=0){ command = '[root@salt-master ~]# salt-run wheel.'+fun+' '+arg}
             else if ( s>=0 ){command = '[root@salt-master ~]# salt-ssh "'+tgt+'" '+fun+' '+arg+' expre_type="'+tgt_type+'"';}
             else{command = '[root@salt-master ~]# salt "'+tgt+'" '+fun+' '+arg+' expre_type="'+tgt_type+'"';}
             var rv=document.getElementById('result');
@@ -307,7 +308,7 @@
             else {
                 var client = $('#client').val();
                 $('#cmd').html(cmd);
-                $.getJSON("/salt/command/", {client: client, cmd: cmd}, function (result) {
+                $.getJSON("{% url 'salt:command' %}", {client: client, cmd: cmd}, function (result) {
                     $('#doc').html(result);
                 });
                 return false; //不刷新页面

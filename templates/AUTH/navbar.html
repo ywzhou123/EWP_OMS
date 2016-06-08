@@ -52,7 +52,6 @@
                             <span class="glyphicon glyphicon-tasks"></span>&nbsp;运维管理<span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li><a href="{% url 'salt:execute' %}">执行命令</a></li>
-                            <li><a href="{% url 'salt:result' %}">执行结果</a></li>
                             <li><a href="{% url 'salt:file_local' %}">本地文件</a></li>
                             <li><a href="{% url 'salt:file_remote' %}">远程文件</a></li>
                             <li><a href="{% url 'salt:deploy' %}">代码发布</a></li>
@@ -67,7 +66,7 @@
                         <ul class="dropdown-menu">
                             <li><a href="#">登陆日志</a></li>
                             <li><a href="#">操作日志</a></li>
-                            <li><a href="#">历史命令</a></li>
+                            <li><a href="{% url 'salt:result' %}">执行记录</a></li>
                             <li><a href="#">发布记录</a></li>
                         </ul>
                     </li>
