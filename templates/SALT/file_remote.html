@@ -18,13 +18,24 @@
         <h2>
             远程文件管理
             <small class="text-danger">{{ salt_server.idc.name }} -- {{ salt_server.url }} -- {{ salt_server.role }}</small>
-
+{#            Server选择#}
+            <label for="server" disabled="disabled"></label>
+            <div class="btn-group pull-right dropdown">
+                <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                    &nbsp;SaltServer&nbsp;<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    {% for s in server_list %}
+                        <li><a href="{% url 'salt:file_remote' s.id%}">{{ s.idc.name }} -- {{ s.url }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
 {#                SVN操作功能#}
             <div class="btn-group pull-right">
                 <button class="btn btn-info" type="button" title="提交" onclick="svn('commit','{{ dir }}')"><span class="glyphicon glyphicon-send"></span></button>
                 <button class="btn btn-info" type="button" title="更新" onclick="svn('update','{{ dir }}')"><span class="glyphicon glyphicon-refresh"></span></button>
                 <button class="btn btn-info" type="button" title="还原" onclick="svn('revert','{{ dir }}')"><span class="glyphicon glyphicon-repeat"></span></button>
                 <button class="btn btn-info" type="button" title="检出" data-toggle="modal" data-target="#modal_checkout" ><span class="glyphicon glyphicon-export"></span></button>
+                &nbsp;&nbsp;
             </div>
 {#                文件操作功能#}
             <div class="btn-group pull-right">
@@ -32,78 +43,73 @@
                 <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_create" title="新建" ><span class="glyphicon glyphicon-plus"></span></button>
                 <button class="btn btn-info" type="button" title="删除" id="delete" {% if dir == '/' %}disabled{% endif %}><span class="glyphicon glyphicon-minus"></span></button>
                 <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_rename" title="重命名"><span class="glyphicon glyphicon-pencil"></span></button>
-                <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_upload" title="上传"><span class="glyphicon glyphicon-open"></span></button>
-                <a class="btn btn-info" title="下载"  {% if type == 'File' %}href="/salt/media{{ dir }}{{ base }}" {% else %}href="javascript:volid(0);" disabled {% endif %}><span class="glyphicon glyphicon-save"></span></a>
-                <button class="btn btn-info" type="button" title="保存" id="write" {% if type != 'File' or nowrite %} disabled {% endif %}><span class="glyphicon glyphicon-floppy-saved"></span></button>
+{#                <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_upload" title="上传"><span class="glyphicon glyphicon-open"></span></button>#}
+{#                <a class="btn btn-info" title="下载"  {% if type == 'File' %}href="/salt/media{{ dir }}{{ base }}" {% else %}href="javascript:volid(0);" disabled {% endif %}><span class="glyphicon glyphicon-save"></span></a>#}
+                <button class="btn btn-info" type="button" title="保存" id="write" ><span class="glyphicon glyphicon-floppy-saved"></span></button>
                 &nbsp;&nbsp;
             </div>
         </h2>
-    {#    信息摘要#}
-        <div class="alert alert-success">
-            <strong>当前路径：<a href="{{ svn.url }}" target="_blank" title="SVN WEB URL"><span class="text-danger">..{{ dir }}</span></a>&nbsp;&nbsp;&nbsp;&nbsp;
-                <span {% if dir == '/' %} hidden {% endif %}>
-                    {% if type == 'File' %}文件名称：<span class="text-danger">{{ base }}</span>&nbsp;&nbsp;&nbsp;&nbsp;
-                        文件大小：<span class="text-danger">{{ size|filesizeformat }}</span>{% endif %}&nbsp;&nbsp;&nbsp;&nbsp;
-                    版本状态：<span class="text-danger">{% if svn.vision %}v{% endif %}{{ svn.vision }}&nbsp;&nbsp;{{ svn.date|date:"Y/m/d H:i"}}{{ svn.error }}</span>
-                </span>
-            </strong>
-        </div>
+
         {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
         {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
-{#本地文件列表#}
+{#    tgt+path#}
         <div class="row">
             <div class="col-sm-3 col-md-3">
                 <div class="form-group">
-                     <label for="idc">IDC</label>
-                     <select class="form-control" name="idc" id="idc" >
-                         <option value="">——选择机房——</option>
-                         {% for idc in idc_list %}
-                             <option value="{{ idc.id }}">{{ idc.name }}</option>
+                     <label for="tgt">Minion</label>
+                     <select class="form-control" id="tgt" >
+                         {% for u in minions_up %}
+                         <option value="{{ u }}">{{ u }}</option>
                          {% endfor %}
                      </select>
                  </div>
-                <div class="form-group">
-                     <label for="tgt_list">Minion</label>
-                     <select class="form-control" name="tgt_list" id="tgt_list" ></select>
+            </div>
+            <div class="col-sm-9 col-md-9">
+                <div class="btn-group">
+                     <label for="path">Path</label>
+                     <div class="input-group">
+                         <input type="text" class="form-control" placeholder="File path. Ex: /etc/salt/roster" id="path" name="path">
+                         <span class="input-group-btn">
+                             <button class="btn btn-info" type="button" onclick="file_list($('#path').val())"><span class="glyphicon glyphicon-search"></span></button>
+                         </span>
+                     </div>
                  </div>
+            </div>
+        </div>
+        {#文件列表#}
+        <div class="row">
+            <div class="col-sx-3 col-md-3">
                 <div class="form-group">
                     <label>目录列表：</label><br>
-                    <div>
-                        {% for media in media_list %}
-                            <a class="label label-default" href="{% url 'salt:file_local' %}?base={{ media }}&dir={{ dir }}">{{ media }}</a><br>
-                        {% endfor %}
+                    <div class="form-group">
+                        <div id="dir"></div>
                     </div>
                 </div>
-
             </div>
-            <div class="col-sm-9 col-md-9" {% if type != 'File' or nowrite %}hidden{% endif %}>
+            <div class="col-sx-9 col-md-9" >
                 <label for="content">文件内容：</label>
-                <textarea id="content" rows="{{ result|length|add:'1' }}" style="min-height:300px;">{% for line in result %}{{ line }}{% endfor %}</textarea>
+                <code id="stats"></code>
+                <textarea id="content"></textarea>
             </div>
         </div>
     </div>
 {% endblock %}
 {% block scripts %}
-{#    <script src="{% static 'salt/js/formatJSON.js' %}"></script>#}
+    <script src="{% static 'salt/js/formatJSON.js' %}"></script>
 {#    <script src="{% static 'salt/js/cmd_run.js' %}"></script>#}
 {#    <script src="{% static 'salt/js/file.js' %}"></script>#}
     <script>
         $(document).ready(function(){
-            //路径搜索
-            $('#path_search').click(function(){
-                var path = $('#path').val();
-                file_list(path);
-            });
             //写入文件
-            $('#file_write').click(function(){
-                var minion = $('#tgt_list').val();
-                var file_path = $('#file_path').html();
+            $('#write').click(function(){
+                var minion = $('#tgt').val();
+                var path = $('#path').val();
                 //alert(file_path);
-                var file_content = $('#file_content').val();
+                var content = $('#content').val();
                 if(!minion){alert("Minion不能为空！")}
-                else if(!file_path){alert("File_Path不能为空！")}
+                else if(!path){alert("Path不能为空！")}
                 else{
-                    $.getJSON("/salt/file_write/", {master: master,file_path: file_path , file_content:file_content}, function (result) {
+                    $.getJSON("{% url 'salt:file_remote_write' %}", {minion:minion,path:path,content:content,server:{{ salt_server.id }} }, function (result) {
                         alert(result);
                     });
                 }
@@ -112,42 +118,41 @@
 
         //显示目录列表功能
         function file_list(path){
-            var minion = $('#tgt_list').val();
-            if(!minion){alert("Minion不能为空！")}
+            var tgt = $('#tgt').val();
+            if(!tgt){alert("Minion不能为空！")}
             else if(!path){alert("Path不能为空！")}
             else if(path !='/' && path.substr(-1) == '/'){alert("Path必须是绝对路径，以'/'开头。")}
             else {
-                //alert(master+path);
-                //timeout('2');
-                $.getJSON("/salt/file_list/", {minion: minion, path: path.replace('//','/')}, function (result) {
+                $.getJSON("{% url 'salt:file_remote_list' %}", {tgt: tgt, path: path.replace('//','/'),server_id:{{ salt_server.id }}}, function (result) {
                     //alert(result);
-                    var path_type=result['path_type'];
-                    var fl=$('#file_list');
-                    var fc=$('#file_content');
-                    var fp=$('#file_path');
-
-                    if (path_type=='dir'){
-                        fl.html("");
-                        fc.html("");
-                        fp.html("");
+                    var type=result['type'];
+                    var path =$('#path');
+                    var dir=$('#dir');
+                    var stats=$('#stats');
+                    var content=document.getElementById('content');
+                    if (type=='dir'){
                         var pdir=result['pdir'];
-                        var file_list=result['file_list'];
-                        $('#path').val(pdir);
-                        for (var i = 0; i<=file_list.length-1;  i++) {
+                        var dirs=result['dirs'];
+                        path.val(pdir);
+                        dir.html("");
+                        stats.html("");
+                        content.value='';
+                        for (var i = 0; i<=dirs.length-1;  i++) {
                             item = '<button type="button" class="label label-default" ' +
-                                'onclick="file_list(\'' + pdir + '/' +file_list[i] + '\')">' +
-                                file_list[i] + '</button><br>';
-                            fl.append(item);
+                                'onclick="file_list(\'' + pdir + '/' +dirs[i] + '\')">' +
+                                dirs[i] + '</button><br>';
+                            dir.append(item);
                         }
                     }
-                    else if (path_type=='file'){
-                        fc.html(result['file_content']);
-                        fp.html(result['pdir'])
+                    else if (type=='file'){
+                        content.value=result['content'];
+                        path.val(result['pdir']);
+                        var s=result['stats'];
+                        stats.html('文件名：'+s['target']+'-'+'文件大小：'+s['size']/1024+'kb-'+'用户：'+s['user']);
+
                     }
                     else{
-                        fl.html('<div class="alert alert-danger">ERROR: This path is not valuable dir or file.</div>');
-                        fc.html("");
-                        fp.html("");
+                        alert(result['error']);
                     }
                 });
             }

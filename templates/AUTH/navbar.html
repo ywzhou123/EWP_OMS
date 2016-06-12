@@ -53,7 +53,7 @@
                         <ul class="dropdown-menu">
                             <li><a href="{% url 'salt:execute' %}">执行命令</a></li>
                             <li><a href="{% url 'salt:file_local' %}">本地文件</a></li>
-                            <li><a href="{% url 'salt:file_remote' %}">远程文件</a></li>
+                            <li><a href="{% url 'salt:file_remote' 0 %}">远程文件</a></li>
                             <li><a href="{% url 'salt:deploy' %}">代码发布</a></li>
                             <li class="divider"></li>
                             <li><a href="{% url 'salt:server' %}">Salt接口配置</a></li>

@@ -23,8 +23,9 @@ urlpatterns = [
     url(r'^file_delete/$', file_delete, name='file_delete'),
     url(r'^file_upload/$', file_upload, name='file_upload'),
     url(r'^svn/$', svn, name='svn'),
-    url(r'^file_remote/$', file_remote, name='file_remote'),
-    url(r'^file_list/$', file_list, name='file_list'),
+    url(r'^file_remote/(?P<server_id>[0-9]+)/$', file_remote, name='file_remote'),
+    url(r'^file_remote_list/$', file_remote_list, name='file_remote_list'),
+    url(r'^file_remote_write/$', file_remote_write, name='file_remote_write'),
     url(r'^deploy/$', deploy, name='deploy'),
 
 

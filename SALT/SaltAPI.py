@@ -41,6 +41,17 @@ class SaltAPI:
         opener = urllib2.urlopen(req)
         content = json.loads(opener.read())
         return content
+    #重复KEY请求，当需要传送重复key值的参数时使用，例如fun=file.write arg=/file/path arg=file-content
+    def RepeatArgs(self, obj, prefix='/'):
+        #obj=['client=local','tgt='+minion,'fun=file.write','arg='+path,'arg='+content]
+        url = self.__url + prefix
+        headers = {'X-Auth-Token': self.__token_id}
+        data = '&'.join(obj)
+        #fun=file.write&client=local&tgt=saltminion01-41.ewp.com&arg=%2Fhome%2Ftest
+        req = urllib2.Request(url=url, data=data,headers=headers)
+        opener = urllib2.urlopen(req)
+        content = json.loads(opener.read())
+        return content
     #列出KEY
     def ListKey(self):
         prefix = '/keys'
@@ -67,14 +78,17 @@ class SaltAPI:
         params = {'client':client, 'fun':fun, 'tgt':tgt, 'expr_form':expr_form}
         if arg:
             args=[]
-            a=arg.split(',') #参数按逗号分隔
+            a=arg.split(',,') #参数按逗号分隔
             for i in a:
-                b=i.split('=') #每个参数再按=号分隔
+                b=i.split('==') #每个参数再按=号分隔
                 if len(b)>1:
                     params[b[0]]=b[1] #带=号的参数作为字典传入
                 else:
                     args.append(b[0]) #不带=号的参数先弄成列表
             params['arg']=' '.join(args) #再转为字符串（空格分开的）传给参数arg
+        # params['arg']="/home/test"
+        # params['args']="['asdf=f2f','fda=2fe2f']"
+        print params
         # if kwargs:
         #     params=dict(params.items()+kwargs['kwargs'].items())
         #     print kwargs
@@ -88,9 +102,9 @@ class SaltAPI:
         params = {'client':client, 'fun':fun}
         if arg:
             args=[]
-            a=arg.split(',') #参数按逗号分隔
+            a=arg.split(',,') #参数按逗号分隔
             for i in a:
-                b=i.split('=') #每个参数再按=号分隔
+                b=i.split('==') #每个参数再按=号分隔
                 if len(b)>1:
                     params[b[0]]=b[1] #带=号的参数作为字典传入
                 else:

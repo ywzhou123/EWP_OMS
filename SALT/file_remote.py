@@ -10,60 +10,68 @@ import os
 
 #文件管理页面
 @login_required
-def file_remote(request):
-    salt_server=SaltServer.objects.all()
-    system_list = SystemType.objects.order_by('name')
-    idc_list = IDC.objects.order_by('name')
-    group_list = HostGroup.objects.order_by('name')
-    if not os.path.isdir(MEDIA_ROOT):
-        os.makedirs(MEDIA_ROOT)
-    media_list = os.listdir(MEDIA_ROOT)
-    return render(request,'SALT/file_remote.html',locals())
+def file_remote(request,server_id):
+    server_list=SaltServer.objects.all()
+    try:
+        salt_server = SaltServer.objects.get(id=server_id)
+    except:#id不存在时返回第一个
+        salt_server = SaltServer.objects.all()[0]
+    context={'server_list':server_list,'salt_server':salt_server}
+
+    try:
+        sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+        result=sapi.SaltRun(client='runner',fun='manage.status')
+        print result
+        context['minions_up']=result['return'][0]['up']
+    except Exception as error:
+        context['error']=error
+    return render(request,'SALT/file_remote.html',context)
 #获取目录列表
 @login_required
-def file_list(request):
+def file_remote_list(request):
     if request.is_ajax():
         if request.method == 'GET':
-            minion=request.GET.get('minion')
+            tgt=request.GET.get('tgt')
             path=request.GET.get('path')
-            print minion,path
-            idc = HostDetail.objects.get(tgt_id=minion).host.server.idc
-            print idc
-            salt_server = SaltServer.objects.get(ip__server__idc=idc)
-            print salt_server.url,salt_server.username,salt_server.password
+            server_id=request.GET.get('server_id')
+            salt_server = SaltServer.objects.get(id=server_id)
             sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
             #目录存在时返回目录列表
             try:
-                isdir=sapi.SaltCmd(client='local',tgt=minion,fun='file.directory_exists',arg=path)['return'][0][minion]
-                # if isdir:
-                #     path_str=path.split('/')
-                #     print path_str
-                #     if path_str[-1]=='..':
-                #         if len(path_str)>3:
-                #             path='/'.join(path_str[0:-2])
-                #         else:
-                #             path='/'
-                #         print path
-                #     file_list = sapi.SaltCmd(client='local',tgt=minion,fun='file.readdir',arg=path)['return'][0][minion]
-                #     file_list.remove('.')
-                #     if path=='/':
-                #         file_list.remove('..')
-                #     result = {'file_list':sorted(file_list) ,'path_type':'dir','pdir':path}
+                isdir=sapi.SaltCmd(client='local',tgt=tgt,fun='file.directory_exists',arg=path)['return'][0][tgt]
+                if isdir:
+                    path_str=path.split('/')
+                    if path_str[-1]=='..':#返回上层
+                        if len(path_str)>3:
+                            path='/'.join(path_str[0:-2])
+                        else:
+                            path='/'
+                    dirs = sapi.SaltCmd(client='local',tgt=tgt,fun='file.readdir',arg=path)['return'][0][tgt]
+                    try:dirs.remove('.').remove('.svn')
+                    except:pass
+                    if path=='/':
+                        dirs.remove('..')
+                    result = {'dirs':sorted(dirs) ,'type':'dir','pdir':path}
             except Exception as e:
-                print e
-                result = {'file_list':[e],'path_type':'none'}
+                result = {'error':str(e)}
             else:
-                #文件存在时，返回文件内容，需要加上文件大小限制
-                isfile=sapi.SaltCmd(client='local',tgt=minion,fun='file.file_exists',arg=path)['return'][0][minion]
-                # if isfile:
-                #     file_content=sapi.SaltCmd(client='local',tgt=minion,fun='cmd.run',arg='cat '+path)['return'][0][minion]
-                #     result = {'file_content':file_content,'path_type':'file','pdir':path}
+                #文件存在时，返回文件内容，加上文件格式、大小限制
+                if os.path.splitext(path)[1] in FILE_FORMAT:
+                    isfile=sapi.SaltCmd(client='local',tgt=tgt,fun='file.file_exists',arg=path)['return'][0][tgt]
+                    if isfile:
+                        stats=sapi.SaltCmd(client='local',tgt=tgt,fun='file.stats',arg=path)['return'][0][tgt]
+                        if stats['size'] <= 1024000:
+                            content=sapi.SaltCmd(client='local',tgt=tgt,fun='cmd.run',arg='cat '+path)['return'][0][tgt]
+                            result = {'content':content,'type':'file','pdir':path,'stats':stats}
+                        else:
+                            result = {'error':u"文件大小超过1M，拒绝访问！"}
+                else:
+                    result = {'error':u"文件格式不允许访问，请检查setting.FILE_FORMAT！"}
 
-            print result
             return JsonResponse(result,safe=False)
 #创建目录或文件
 @login_required
-def file_create_r(request):
+def file_remote_create(request):
     if request.is_ajax():
         if request.method == 'GET':
             master=request.GET.get('master')
@@ -95,22 +103,28 @@ def file_create_r(request):
             return JsonResponse(result,safe=False)
 #写入文件内容
 @login_required
-def file_write_r(request):
+def file_remote_write(request):
     if request.is_ajax():
         if request.method == 'GET':
-            master=request.GET.get('master')
-            file_path=request.GET.get('file_path')
-            file_content=request.GET.get('file_content')
+            minion=request.GET.get('minion')
+            server=request.GET.get('server')
+            path=request.GET.get('path')
+            content=request.GET.get('content')
             # print master,path
-            salt_server = SaltServer.objects.filter(ip__ip__tgt_id=master)[0]
+            salt_server = SaltServer.objects.get(id=server)
             # print salt_server
             sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
             # ret = sapi.SaltCmd(client='local',tgt=master,fun='file.write',arg=[file_path,file_content])['return'][0][master]
-            if sapi.SaltCmd(client='local',tgt=master,fun='file.file_exists',arg=file_path)['return'][0][master]:
-                result  = sapi.SaltCmd(client='local',tgt=master,fun='cmd.run',arg='echo "'+file_content+'" > '+file_path)['return'][0][master]
-                if result=="":
-                    result=u'文件%s修改成功！' %file_path
+            obj=['client=local','tgt='+minion,'fun=file.write','arg='+path,'arg='+content]
+            if sapi.SaltCmd(client='local',tgt=minion,fun='file.file_exists',arg=path)['return'][0][minion]:
+            #     result  = sapi.SaltCmd(client='local',tgt=master,fun='cmd.run',arg='echo "'+file_content+'" > '+file_path)['return'][0][master]
+            #     if result=="":
+                try:
+                    result=sapi.RepeatArgs(obj)['return'][0][minion]
+                    # result=u'文件%s修改成功！' % path
+                except Exception as e:
+                    result = str(e)
             else:
-                result = u"文件%s不存在！" % file_path
+                result = u"文件%s不存在！" % path
             print result
             return JsonResponse(result,safe=False)
