@@ -23,7 +23,6 @@ def file_local(request):
         path = root+dir+base
         #返回目录列表
         if os.path.isdir(path):
-            # type='Dir'
             dir=dir+base+'/'
             #返回目录的SVN信息
             svn=SvnLocal(path).info()

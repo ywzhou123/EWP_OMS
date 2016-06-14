@@ -86,15 +86,8 @@ class SaltAPI:
                 else:
                     args.append(b[0]) #不带=号的参数先弄成列表
             params['arg']=' '.join(args) #再转为字符串（空格分开的）传给参数arg
-        # params['arg']="/home/test"
-        # params['args']="['asdf=f2f','fda=2fe2f']"
-        print params
-        # if kwargs:
-        #     params=dict(params.items()+kwargs['kwargs'].items())
-        #     print kwargs
         obj = urllib.urlencode(params)
         res = self.PostRequest(obj)
-        # res=self.SaltRun(params)
         return res
         #{u'return': [{u'jid': u'20160331104340284003', u'minions': [u'saltminion01-41.ewp.com']}]}
     #runner=salt-run=master本地执行

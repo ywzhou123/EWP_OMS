@@ -294,13 +294,8 @@ def config(request,server_id):
         content=request.GET.get('content')
         if env:
             if file:
-                if content:#写入文件内容
-                    print content,type(content)
-                    content=u"web1:\n  host: 192.168.42.2\n  user: fred"
-                    if env:
-                        arg='path=%s,data=%s,saltenv=%s'%(file,content,env)
-                    else:
-                        arg='path=%s,data=%s'%(file,content)
+                if content:#写入文件内容，文件会产生[noeol]问题，暂时不用此功能
+                    arg='path==%s,,data==%s,,saltenv==%s'%(file,content,env)
                     try:
                         r=sapi.SaltRun(client='wheel',fun='file_roots.write',arg=arg)
                         success=r['return'][0]['data']['success']
@@ -313,13 +308,20 @@ def config(request,server_id):
                 else:#读取环境下文件内容
                     try:
                         path=configs['file_roots'][env][0]+file
-                        r=sapi.SaltRun(client='wheel',fun='file_roots.read',arg='path=%s,saltenv=%s'%(path,env))
-                        res=r['return'][0]['data']['return'][0]
+                        arg='path==%s,,saltenv==%s'%(path,env)
+                        r=sapi.SaltRun(client='wheel',fun='file_roots.read',arg=arg)
+                        res=r['return'][0]['data']['return']
+                        if isinstance(res,str):
+                            res={'Error':res}
+                        else:
+                            res=res[0]
+                        print type(res),res
                     except Exception as error:
                         res={'Error':str(error)}
+                        print error
             else:#列出环境下的文件
                 try:
-                    r=sapi.SaltRun(client='runner',fun='fileserver.file_list',arg='saltenv=%s'%env)
+                    r=sapi.SaltRun(client='runner',fun='fileserver.file_list',arg='saltenv==%s'%env)
                     fs=r['return'][0]
                     res=[]
                     for f in fs:
@@ -329,7 +331,6 @@ def config(request,server_id):
                     res=[str(error)]
         else:
             res=None
-        print res
         return JsonResponse(res,safe=False)
 
     else:
