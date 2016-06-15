@@ -43,12 +43,13 @@ class SaltAPI:
         return content
     #重复KEY请求，当需要传送重复key值的参数时使用，例如fun=file.write arg=/file/path arg=file-content
     def RepeatArgs(self, obj, prefix='/'):
-        #obj=['client=local','tgt='+minion,'fun=file.write','arg='+path,'arg='+content]
+        #参数值涉及中文时，from urllib import quote
+        #obj=['client=local','tgt='+minion,'fun=file.write','arg=%s'%quote(path.encode("utf-8")),'arg='+content]
         url = self.__url + prefix
         headers = {'X-Auth-Token': self.__token_id}
         data = '&'.join(obj)
         #fun=file.write&client=local&tgt=saltminion01-41.ewp.com&arg=%2Fhome%2Ftest
-        req = urllib2.Request(url=url, data=data,headers=headers)
+        req = urllib2.Request(url,data,headers)
         opener = urllib2.urlopen(req)
         content = json.loads(opener.read())
         return content
@@ -85,9 +86,12 @@ class SaltAPI:
                     params[b[0]]=b[1] #带=号的参数作为字典传入
                 else:
                     args.append(b[0]) #不带=号的参数先弄成列表
-            params['arg']=' '.join(args) #再转为字符串（空格分开的）传给参数arg
+            if args:
+                params['arg']=' '.join(args) #再转为字符串（空格分开的）传给参数arg
+        # print params
         obj = urllib.urlencode(params)
         res = self.PostRequest(obj)
+        # print res
         return res
         #{u'return': [{u'jid': u'20160331104340284003', u'minions': [u'saltminion01-41.ewp.com']}]}
     #runner=salt-run=master本地执行

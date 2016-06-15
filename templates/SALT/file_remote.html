@@ -39,9 +39,9 @@
             </div>
 {#                文件操作功能#}
             <div class="btn-group pull-right">
-                <a class="btn btn-info" href="{% url 'salt:file_local' %}?updir={{ dir }}" title="返回上层"><span class="glyphicon glyphicon-chevron-up"></span></a>
+{#                <a class="btn btn-info" href="{% url 'salt:file_local' %}?updir={{ dir }}" title="返回上层"><span class="glyphicon glyphicon-chevron-up"></span></a>#}
                 <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_create" title="新建" ><span class="glyphicon glyphicon-plus"></span></button>
-{#                <button class="btn btn-info" type="button" title="删除" id="delete"><span class="glyphicon glyphicon-minus"></span></button>#}
+                <button class="btn btn-info" type="button" title="删除" id="delete"><span class="glyphicon glyphicon-minus"></span></button>
                 <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_rename" title="重命名"><span class="glyphicon glyphicon-pencil"></span></button>
 {#                <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_upload" title="上传"><span class="glyphicon glyphicon-open"></span></button>#}
 {#                <a class="btn btn-info" title="下载"  {% if type == 'File' %}href="/salt/media{{ dir }}{{ base }}" {% else %}href="javascript:volid(0);" disabled {% endif %}><span class="glyphicon glyphicon-save"></span></a>#}
@@ -168,13 +168,11 @@
                             <label class="pull-right">当前路径：</label>
                         </div>
                         <div class="col-sm-8 col-md-8">
-                            <span class="bg-info" id="path_r">
-                                {% if stats %}
-                                {{ stats.target }}
-                                {% else %}
-                                {{ dir }}
-                                {% endif %}
-                            </span>
+                            {% if stats %}
+                                <span class="bg-info" id="path_r">{{ stats.target }}</span>
+                            {% else %}
+                                <span class="bg-info" id="path_r">{{ dir }}</span>
+                            {% endif %}
                         </div>
                     </div>
                     <br>
@@ -183,7 +181,7 @@
                             <label class="pull-right">目标类型：</label>
                         </div>
                         <div class="col-sm-8 col-md-8 ">
-                            <span class="bg-info">{% if stats %}File{% else %}Dir{% endif %}</span>
+                            <span class="bg-info">{% if stats %}文件{% else %}目录{% endif %}</span>
                         </div>
                     </div>
                     <br>
@@ -281,7 +279,7 @@
                 var path = $('#path_c').html();
                 var type = $('#type').val();
                 if(!name){alert("名称不能为空！")}
-                else if(name.indexOf(' ') > 0){alert("目标名称不能包含空格！")}
+                else if(name.indexOf(' ') > 0){alert("名称不能包含空格！")}
                 else{
                     $.getJSON("{% url 'salt:file_remote_create' %}", {tgt:tgt,path: path,name:name,type: type, server:{{ salt_server.id }}}, function (result) {
                         alert(result['msg']);
@@ -291,17 +289,20 @@
             });
             //重命名
             $('#rename').click(function() {
-            var name_new = $('#name_new').val();
-            if (!name_new) {alert("新名称不能为空！")}
-            else {
-                $.getJSON("{% url 'salt:file_rename' %}", {type: '{{ type }}', dir: '{{ dir }}', name: '{{ base }}', name_new: name_new}, function (result) {
-                    alert(result['msg']);
-                    if (result['ret'] == 1) {
-                        window.location.href = '{% url 'salt:file_local' %}?base=' + name_new + '&dir=' + result['dir'];
-                    }
-                });
-            }
-        });
+                var tgt = $('#tgt').val();
+                var name = $('#name_new').val();
+                var path = $('#path_r').html();
+                if (!name) {alert("名称不能为空！")}
+                else if(name.indexOf(' ') > 0){alert("名称不能包含空格！")}
+                else {
+                    $.getJSON("{% url 'salt:file_remote_rename' %}", {tgt:tgt,path:path,name:name,server:{{ salt_server.id }}}, function (result) {
+                        alert(result['msg']);
+                        if (result['ret'] == 1) {
+                            window.location.href = '{% url 'salt:file_remote' salt_server.id %}?tgt=' + tgt + '&path=' + result['dst'];
+                        }
+                    });
+                }
+            });
             //写入文件
             $('#write').click(function(){
                 var tgt = $('#tgt').val();
@@ -315,6 +316,18 @@
                 }
             });
 
+            $('#delete').click(function(){
+                var tgt = $('#tgt').val();
+                var path = '{% if stats %}{{ stats.target }}{% else %}{{ dir }}{% endif %}';
+                if(confirm("是否删除{% if stats %}文件'{{ stats.target }}'{% else %}目录'{{ dir }}'{% endif %}？")){
+                    $.getJSON("{% url 'salt:file_remote_delete' %}", {tgt:tgt,path:path,server:{{salt_server.id}}}, function (result) {
+                        alert(result['msg']);
+                        if(result['ret']==1){
+                            window.location.href='{% url 'salt:file_remote' salt_server.id %}?tgt='+tgt+'&path='+result['dir'];
+                        }
+                    });
+                }
+            });
         });
 
     </script>

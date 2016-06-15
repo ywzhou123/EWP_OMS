@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^file_remote_create/$', file_remote_create, name='file_remote_create'),
     url(r'^file_remote_rename/$', file_remote_rename, name='file_remote_rename'),
     url(r'^file_remote_write/$', file_remote_write, name='file_remote_write'),
+    url(r'^file_remote_delete/$', file_remote_delete, name='file_remote_delete'),
     url(r'^deploy/$', deploy, name='deploy'),
 
 
