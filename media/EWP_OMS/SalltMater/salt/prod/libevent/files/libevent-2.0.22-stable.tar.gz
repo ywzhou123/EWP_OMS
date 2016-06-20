@@ -1,0 +1,915 @@
+<!doctype html>
+<!-- Server: sfs-consume-12 -->
+
+<!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html lang="en" class="no-js ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html lang="en" class="no-js ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html lang="en" class="no-js ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]>--> <html lang="en" class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        
+        
+        <meta id="project_name" name="project_name" content="levent">
+
+        
+        <meta name="description" content="The libevent API provides a mechanism to execute a callback function when a specific event occurs on a file descriptor or after a timeout has been …">
+        <meta name="keywords" content="Networking, Internet,  Open Source, Open Source Software, Development, Community, Source Code, Secure,  Downloads, Free Software">
+<noscript>
+    <meta http-equiv="refresh" content="5; url=http://downloads.sourceforge.net/project/levent/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz?r=&amp;ts=1464069932&amp;use_mirror=jaist">
+</noscript>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Download libevent - an asynchronous event library from SourceForge.net</title>
+        <link rel="shortcut icon" href="//a.fsdn.com/con/img/sftheme/favicon.ico">
+        
+<!-- CCM Tag -->
+<script type="text/javascript">
+  (function () {
+    /*global _ml:true, window */
+    _ml = window._ml || {};
+    _ml.eid = '771';
+
+    var s = document.getElementsByTagName('script')[0], cd = new Date(), mltag = document.createElement('script');
+    mltag.type = 'text/javascript'; mltag.async = true;
+    mltag.src = '//ml314.com/tag.aspx?' + cd.getDate() + cd.getMonth() + cd.getFullYear();
+    s.parentNode.insertBefore(mltag, s);
+  })();
+</script>
+<!-- End CCM Tag -->
+
+    <link rel="canonical" href="https://sourceforge.net/projects/levent/">
+        
+        <script type="text/javascript">
+            /*global unescape, window, console, jQuery, $, net, SF, DD_belatedPNG, ga */
+            // Setup our namespace
+            if (!window.SF) { window.SF = {}; }
+            if (!window.net) { window.net = {}; }
+            if (!window.net.sf) { window.net.sf = {}; }
+            SF.Ads = {};
+            SF.cdn = '//a.fsdn.com/con';
+            SF.deploy_time = '1464017326';
+            SF.ad_block_measurement = true;
+        </script>
+        <script src="//a.fsdn.com/con/js/min/sf.head.js?1464017326" type="text/javascript"></script>
+        
+<!--[if lt IE 7 ]>
+  <script src="//a.fsdn.com/con/js/sftheme/vendor/dd_belatedpng.js"></script>
+  <script> DD_belatedPNG.fix('img, .png_bg'); //fix any <img> or .png_bg background-images </script>
+<![endif]-->
+ 
+<link rel="stylesheet" href="//a.fsdn.com/con/css/download.css?1464017326" type="text/css">
+
+  
+
+    <style type="text/css" >.sfdl { width:150px;height:28px;padding:0;position:relative;font:bold 12px/1.17 sans-serif !important; border:1px solid #aaa;display:inline;float:left;text-decoration:none;-moz-box-shadow:rgba(255, 255, 255, 0.6) 0 1px 0 0;-webkit-box-shadow:rgba(255, 255, 255, 0.6) 0 1px 0 0;-o-box-shadow:rgba(255, 255, 255, 0.6) 0 1px 0 0;box-shadow:rgba(255, 255, 255, 0.6) 0 1px 0 0;-moz-border-radius:4px;-webkit-border-radius:4px;-o-border-radius:4px;-ms-border-radius:4px;-khtml-border-radius:4px;border-radius:4px;background:no-repeat #e5e5e5 8px center url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAANCAYAAABPeYUaAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAANFJREFUeNqcUosNgjAUbE0HcARGwAnqZxBxBCbQDXQE2UOkTIAj4AZsgPfMa1JeGqhecimU63HvvepxHFUq6mebY2nAdbi/Ur/hKg0IRv2H3WFvnX/Rj9qRcxH7A+BIjDK2eCYewQy8g2/WDJSk4w8xWDICz2ziUchyvMGLXIVJK9acE0+0VM53PIitE6bTcKJJT0wg6ESSHiwhHpbMDYszjhrDKcVkE5mO5dhZyrwNx72J2i9iGvMmODB372U/aCpV2NSlG0sGVbiBw2VM+BFgALYfPdL6UCEWAAAAAElFTkSuQmCC);background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAANCAYAAABPeYUaAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAANFJREFUeNqcUosNgjAUbE0HcARGwAnqZxBxBCbQDXQE2UOkTIAj4AZsgPfMa1JeGqhecimU63HvvepxHFUq6mebY2nAdbi/Ur/hKg0IRv2H3WFvnX/Rj9qRcxH7A+BIjDK2eCYewQy8g2/WDJSk4w8xWDICz2ziUchyvMGLXIVJK9acE0+0VM53PIitE6bTcKJJT0wg6ESSHiwhHpbMDYszjhrDKcVkE5mO5dhZyrwNx72J2i9iGvMmODB372U/aCpV2NSlG0sGVbiBw2VM+BFgALYfPdL6UCEWAAAAAElFTkSuQmCC), -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #fff), color-stop(100%, #ccc));background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAANCAYAAABPeYUaAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAANFJREFUeNqcUosNgjAUbE0HcARGwAnqZxBxBCbQDXQE2UOkTIAj4AZsgPfMa1JeGqhecimU63HvvepxHFUq6mebY2nAdbi/Ur/hKg0IRv2H3WFvnX/Rj9qRcxH7A+BIjDK2eCYewQy8g2/WDJSk4w8xWDICz2ziUchyvMGLXIVJK9acE0+0VM53PIitE6bTcKJJT0wg6ESSHiwhHpbMDYszjhrDKcVkE5mO5dhZyrwNx72J2i9iGvMmODB372U/aCpV2NSlG0sGVbiBw2VM+BFgALYfPdL6UCEWAAAAAElFTkSuQmCC), -moz-linear-gradient(top, #fff 0%, #ccc 100%);background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAANCAYAAABPeYUaAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAANFJREFUeNqcUosNgjAUbE0HcARGwAnqZxBxBCbQDXQE2UOkTIAj4AZsgPfMa1JeGqhecimU63HvvepxHFUq6mebY2nAdbi/Ur/hKg0IRv2H3WFvnX/Rj9qRcxH7A+BIjDK2eCYewQy8g2/WDJSk4w8xWDICz2ziUchyvMGLXIVJK9acE0+0VM53PIitE6bTcKJJT0wg6ESSHiwhHpbMDYszjhrDKcVkE5mO5dhZyrwNx72J2i9iGvMmODB372U/aCpV2NSlG0sGVbiBw2VM+BFgALYfPdL6UCEWAAAAAElFTkSuQmCC), linear-gradient(top, #fff 0%, #ccc 100%);background-position:8px center, 0 0;margin:0 10px 0px 0;overflow:hidden;color:#555 !important;}.sfdl:hover { cursor:pointer;text-decoration:none;background:8px center no-repeat #eee url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAANCAYAAABPeYUaAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAANFJREFUeNqcUosNgjAUbE0HcARGwAnqZxBxBCbQDXQE2UOkTIAj4AZsgPfMa1JeGqhecimU63HvvepxHFUq6mebY2nAdbi/Ur/hKg0IRv2H3WFvnX/Rj9qRcxH7A+BIjDK2eCYewQy8g2/WDJSk4w8xWDICz2ziUchyvMGLXIVJK9acE0+0VM53PIitE6bTcKJJT0wg6ESSHiwhHpbMDYszjhrDKcVkE5mO5dhZyrwNx72J2i9iGvMmODB372U/aCpV2NSlG0sGVbiBw2VM+BFgALYfPdL6UCEWAAAAAElFTkSuQmCC);}.sfdl-lite { background:0 center no-repeat #337733 none;color:white !important;height:auto;padding:0.5em 1em;text-align:center;-moz-border-radius:4px;-webkit-border-radius:4px;-o-border-radius:4px;-ms-border-radius:4px;-khtml-border-radius:4px;border-radius:4px;background-image:-webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #339933), color-stop(100%, #337733));background-image:-moz-linear-gradient(top, #339933 0%, #337733 100%);background-image:linear-gradient(top, #339933 0%, #337733 100%);}.sfdl-lite:hover { background:0 center no-repeat #339933;}.sfdl span { border-radius:3px;-moz-border-radius:3px;-webkit-border-radius:3px;display:block;margin:3px;margin-left:35px;padding:4px;text-align:left;color:#FFF;background:#363;background-image:-moz-linear-gradient(center top, #393 0%, #373 100%);background-image:-webkit-gradient(linear, left top, left bottom, color-stop(0, #393),color-stop(1, #373));background-image:linear-gradient(top, #393 0%, #373 100%);overflow:hidden;height:14px;}.sfdl b { display:block;line-height:7.0px;}.sfdl small { display:block;line-height:7.0px;color:#ADC2AD; font-weight:normal;white-space:nowrap;overflow:hidden;font-size:77%;}.info-circle{ right:10px;bottom:16px;}.direct-dl{ font-size:10px;text-align:right;display:inline-block;width:100%;}</style>
+
+
+        <style type="text/css">.Ree547d9ed3318df455f0c5c743fb019d98d2b938 { display: none !important; }</style>
+
+        
+<script type="text/javascript">
+    SF.adblock = true;
+</script>
+  <script type='text/javascript'>
+
+  var googletag = window.googletag || {};
+   googletag.cmd = googletag.cmd || [];
+   (function() {
+     var gads = document.createElement('script');
+     gads.async = true;
+     gads.type = 'text/javascript';
+     gads.src = 'https://www.googletagservices.com/tag/js/gpt.js';
+
+     
+     SF.Ads.gpt_loaded = false;
+     function gpt_callback(){
+         SF.Ads.gpt_loaded = true;
+     }
+     function gpt_onerror(){
+         SF.Ads.gpt_blocked = true;
+     }
+     gads.onload=gpt_callback;
+     gads.onerror=gpt_onerror;
+
+     var node = document.getElementsByTagName('script')[0];
+     node.parentNode.insertBefore(gads, node);
+   })();
+   </script>
+
+   <!-- GPT Slot Definitions -->
+   <script type='text/javascript'>
+       /*global googletag */
+       var gptadslots=[];
+       var gptadHandlers={};
+       googletag.cmd.push(function() {
+            gptadslots.push(googletag.defineSlot('/41014381/Sourceforge/SF_Temp5_728x90_A', [728, 90], 'div-gpt-ad-1392148432591-0')
+                                                    .addService(googletag.pubads())
+                                                        .setTargeting('tpc', ['levent', 'c', 'networking', 'system', 'internet'])
+                                                        .setTargeting('shortname', 'levent')
+                                                        .setTargeting('aud', ['developers'])
+                                                        .setTargeting('mirror', 'False')
+                                                        .setTargeting('dc_ref', 'https://sourceforge.net/projects/levent/files/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz/download')
+                                                        .setTargeting('sz', '728x90')
+                                                        .setTargeting('page_type', 'pg_download'));
+            gptadslots.push(googletag.defineSlot('/41014381/Sourceforge/SF_Temp5_728x90_B', [728, 90], 'div-gpt-ad-1392148432592-0')
+                                                    .addService(googletag.pubads())
+                                                        .setTargeting('tpc', ['levent', 'c', 'networking', 'system', 'internet'])
+                                                        .setTargeting('shortname', 'levent')
+                                                        .setTargeting('aud', ['developers'])
+                                                        .setTargeting('mirror', 'False')
+                                                        .setTargeting('dc_ref', 'https://sourceforge.net/projects/levent/files/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz/download')
+                                                        .setTargeting('sz', '728x90')
+                                                        .setTargeting('page_type', 'pg_download'));
+            gptadslots.push(googletag.defineSlot('/41014381/Sourceforge/SF_Temp5_300x250_A', [[300, 250], [300, 600]], 'div-gpt-ad-1392148432593-0')
+                                                    .addService(googletag.pubads())
+                                                        .setTargeting('tpc', ['levent', 'c', 'networking', 'system', 'internet'])
+                                                        .setTargeting('shortname', 'levent')
+                                                        .setTargeting('aud', ['developers'])
+                                                        .setTargeting('mirror', 'False')
+                                                        .setTargeting('dc_ref', 'https://sourceforge.net/projects/levent/files/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz/download')
+                                                        .setTargeting('sz', '300x250,300x600')
+                                                        .setTargeting('page_type', 'pg_download'));
+            gptadslots.push(googletag.defineSlot('/41014381/Sourceforge/SF_Temp5_300x250_B', [300, 250], 'div-gpt-ad-1392148432594-0')
+                                                    .addService(googletag.pubads())
+                                                        .setTargeting('tpc', ['levent', 'c', 'networking', 'system', 'internet'])
+                                                        .setTargeting('shortname', 'levent')
+                                                        .setTargeting('aud', ['developers'])
+                                                        .setTargeting('mirror', 'False')
+                                                        .setTargeting('dc_ref', 'https://sourceforge.net/projects/levent/files/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz/download')
+                                                        .setTargeting('sz', '300x250')
+                                                        .setTargeting('page_type', 'pg_download'));
+            gptadslots.push(googletag.defineSlot('/41014381/Sourceforge/SF_Temp5_300x250_C', [300, 250], 'div-gpt-ad-1392148432598-0')
+                                                    .addService(googletag.pubads())
+                                                        .setTargeting('tpc', ['levent', 'c', 'networking', 'system', 'internet'])
+                                                        .setTargeting('shortname', 'levent')
+                                                        .setTargeting('aud', ['developers'])
+                                                        .setTargeting('mirror', 'False')
+                                                        .setTargeting('dc_ref', 'https://sourceforge.net/projects/levent/files/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz/download')
+                                                        .setTargeting('sz', '300x250')
+                                                        .setTargeting('page_type', 'pg_download'));
+            gptadslots.push(googletag.defineSlot('/41014381/Sourceforge/SF_Temp5_multi_A', [[700, 500], [728, 90], [300, 250], [336, 280], [602, 147], [622, 147], [622, 297], [300, 600]], 'div-gpt-ad-1392148432595-0')
+                                                    .addService(googletag.pubads())
+                                                        .setTargeting('tpc', ['levent', 'c', 'networking', 'system', 'internet'])
+                                                        .setTargeting('shortname', 'levent')
+                                                        .setTargeting('aud', ['developers'])
+                                                        .setTargeting('mirror', 'False')
+                                                        .setTargeting('dc_ref', 'https://sourceforge.net/projects/levent/files/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz/download')
+                                                        .setTargeting('sz', '700x500,728x90,300x250,336x280,602x147,622x147,622x297,300x600')
+                                                        .setTargeting('page_type', 'pg_download'));
+            gptadslots.push(googletag.defineSlot('/41014381/Sourceforge/SF_Temp5_multi_B', [[700, 500], [728, 90], [300, 250], [336, 280], [602, 147], [622, 147], [622, 297]], 'div-gpt-ad-1392148432596-0')
+                                                    .addService(googletag.pubads())
+                                                        .setTargeting('tpc', ['levent', 'c', 'networking', 'system', 'internet'])
+                                                        .setTargeting('shortname', 'levent')
+                                                        .setTargeting('aud', ['developers'])
+                                                        .setTargeting('mirror', 'False')
+                                                        .setTargeting('dc_ref', 'https://sourceforge.net/projects/levent/files/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz/download')
+                                                        .setTargeting('sz', '700x500,728x90,300x250,336x280,602x147,622x147,622x297')
+                                                        .setTargeting('page_type', 'pg_download'));
+            gptadslots.push(googletag.defineSlot('/41014381/Sourceforge/SF_Temp5_300x450_A', [300, 450], 'div-gpt-ad-1431036742251-0')
+                                                    .addService(googletag.pubads())
+                                                        .setTargeting('tpc', ['levent', 'c', 'networking', 'system', 'internet'])
+                                                        .setTargeting('shortname', 'levent')
+                                                        .setTargeting('aud', ['developers'])
+                                                        .setTargeting('mirror', 'False')
+                                                        .setTargeting('dc_ref', 'https://sourceforge.net/projects/levent/files/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz/download')
+                                                        .setTargeting('sz', '300x450')
+                                                        .setTargeting('page_type', 'pg_download'));
+            gptadslots.push(googletag.defineSlot('/41014381/Sourceforge/SF_Mobile_DLP_300x50_A', [300, 50], 'div-gpt-ad-3392148208795-0')
+                                                    .addService(googletag.pubads())
+                                                        .setTargeting('tpc', ['levent', 'c', 'networking', 'system', 'internet'])
+                                                        .setTargeting('shortname', 'levent')
+                                                        .setTargeting('aud', ['developers'])
+                                                        .setTargeting('mirror', 'False')
+                                                        .setTargeting('dc_ref', 'https://sourceforge.net/projects/levent/files/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz/download')
+                                                        .setTargeting('sz', '300x50')
+                                                        .setTargeting('page_type', 'pg_download'));
+            gptadslots.push(googletag.defineSlot('/41014381/Sourceforge/SF_Mobile_DLP_300x50_B', [300, 50], 'div-gpt-ad-3392148208796-0')
+                                                    .addService(googletag.pubads())
+                                                        .setTargeting('tpc', ['levent', 'c', 'networking', 'system', 'internet'])
+                                                        .setTargeting('shortname', 'levent')
+                                                        .setTargeting('aud', ['developers'])
+                                                        .setTargeting('mirror', 'False')
+                                                        .setTargeting('dc_ref', 'https://sourceforge.net/projects/levent/files/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz/download')
+                                                        .setTargeting('sz', '300x50')
+                                                        .setTargeting('page_type', 'pg_download'));
+            gptadslots.push(googletag.defineSlot('/41014381/Sourceforge/SF_Mobile_DLP_300x250_A', [300, 250], 'div-gpt-ad-3392148208797-0')
+                                                    .addService(googletag.pubads())
+                                                        .setTargeting('tpc', ['levent', 'c', 'networking', 'system', 'internet'])
+                                                        .setTargeting('shortname', 'levent')
+                                                        .setTargeting('aud', ['developers'])
+                                                        .setTargeting('mirror', 'False')
+                                                        .setTargeting('dc_ref', 'https://sourceforge.net/projects/levent/files/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz/download')
+                                                        .setTargeting('sz', '300x250')
+                                                        .setTargeting('page_type', 'pg_download'));
+            
+            googletag.pubads().enableAsyncRendering();
+            googletag.pubads().collapseEmptyDivs();
+            googletag.enableServices();
+            googletag.pubads().addEventListener('slotRenderEnded', function(event) {
+                var unitName = event.slot.getName();
+                if ( unitName in gptadHandlers ) {
+                   try {
+                       SF.Ads.RenderHandlers[gptadHandlers[unitName]].call(this, event);
+                   } catch (e) {
+                   }
+                }
+            });
+            
+        });
+   </script>
+
+        
+
+        
+        <script type="text/javascript" src="//a.fsdn.com/con/js/adframe.js?1464017326"></script>
+        <script type="text/javascript">
+
+            /*jshint ignore:start*/
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+            /*jshint ignore:end*/
+
+            //var $ = jQuery.noConflict(); // jshint ignore:line
+        </script>
+        <script type="text/javascript">
+                ga('create', 'UA-36130941-1', {'name': '1'});
+                ga('create', 'UA-36130941-1', 'auto');
+            if (typeof _ml !== 'undefined' && _ml.us) {
+                if (_ml.us.tp && _ml.us.tp.length > 0) {
+                    ga('set', 'dimension2', _ml.us.tp[0]);
+                }
+                if (_ml.us.pc && _ml.us.pc.length > 0) {
+                    ga('set', 'dimension7', _ml.us.pc[0]);
+                }
+                ga('set', 'dimension3', _ml.us.ind);
+                ga('set', 'dimension4', _ml.us.cr);
+                ga('set', 'dimension5', _ml.us.cs);
+                ga('set', 'dimension6', _ml.us.dm);
+                ga('set', 'dimension8', _ml.us.sn);
+            }
+
+            
+                ga('set', 'dimension9', 'levent');
+                ga('set', 'dimension10', 'pg_dwnld');
+                ga('set', 'dimension11', '/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz');
+                    
+                ga('set', 'dimension13', 'Logged Out');
+                ga('set', 'dimension14', 'No');  
+                ga('set', 'dimension15', 'desktop');
+                ga('send', 'pageview');
+
+            
+        </script>
+        <script type="text/javascript">
+        var _paq = _paq || [];
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function() {
+            var u="//analytics.slashdotmedia.com/";
+            _paq.push(['setTrackerUrl', u+'sf.php']);
+            _paq.push(['setSiteId', 39]);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'sf.js'; s.parentNode.insertBefore(g,s);
+        })();
+        </script>
+<script type="text/javascript" src="//a.fsdn.com/con/js/madmen.js?1464017326"></script>
+<script type="text/javascript">
+    SF.geoIsRestOfWorld = true;
+
+    
+    SF.Ads.AdtemplateImpression = false;
+    
+
+    SF.Ads.WideLeadgenLayout = true;
+    SF.Ads.Template7 = false;
+    SF.ShowProgressBar = true;
+
+    SF.geoCountryCode = 'CN';
+</script>
+
+
+<script type="text/javascript">
+/*global _taboola*/
+window._taboola = window._taboola || [];
+_taboola.push({article:'auto'});
+(function (e, f, u) {
+    e.async = 1;
+    e.src = u;
+    f.parentNode.insertBefore(e, f);
+})(document.createElement('script'),
+    document.getElementsByTagName('script')[0],
+    '//cdn.taboola.com/libtrc/sourceforge/loader.js');
+</script>
+
+
+        <script type="text/javascript"> try{(function(){ var cb = new Date().getTime(); var s = document.createElement("script"); s.defer = true; s.src = "//tag.crsspxl.com/s1.js?d=2396&cb="+cb; var s0 = document.getElementsByTagName('script')[0]; s0.parentNode.insertBefore(s, s0); })();}catch(e){} </script>
+<script type="text/javascript">
+/* Version: 0.7 */
+/* <![CDATA[ */
+try {
+    var _mag = _mag || {};
+    _mag.kw = 'Networking,Internet';
+    _mag.kw_encoded = 0;
+    _mag.shortName = 'sourceforgemedia-computing';
+    _mag.default_protocol = ('https:' === document.location.protocol ? 'https:' : 'http:');
+    _mag.startTime = (new Date()).getTime();
+    (function(d,t) {
+        var mag = d.createElement('script'); mag.type = 'text/javascript'; mag.async = true; mag.src = t;
+        var head = d.getElementsByTagName('head')[0] || d.documentElement; head.insertBefore(mag, head.firstChild);
+    })(document,  _mag.default_protocol + '//d3ezl4ajpp2zy8.cloudfront.net/sourceforgemedia-computing_tag.js');
+} catch (e) {}
+/* ]]> */
+</script>
+
+        <script type="text/javascript" src="//ads.pro-market.net/ads/scripts/site-143572.js"></script></head>
+    <body id="pg_dwnld" class="bluesteel flatblack anonymous">
+        
+        
+
+        <div id="busy-spinner"></div>
+        
+<header id="site-header">
+    <div class="wrapper">
+        <a href="/" class="logo">
+            <span>SourceForge</span>
+        </a>
+        <form method="get" action="/directory/">
+            <input type="text" id="words" name="q" placeholder="Search">
+        </form>
+        <!--Switch to {language}-->
+        <nav id="nav-site">
+            <a href="/directory/" title="Browse our software.">Browse</a>
+            <a href="/directory/enterprise" title="Browse our Enterprise software.">Enterprise</a>
+            <a href="/blog/" title="Read the latest news from the SF HQ.">Blog</a>
+            <a href="//deals.sourceforge.net/?utm_source=sourceforge&amp;utm_medium=navbar&amp;utm_campaign=homepage" title="Discover and Save on the Best Gear, Gadgets, and Software" class="featured-link" target="_blank">Deals</a>
+            <a href="/support" title="Contact us for help and feedback.">Help</a>
+        </nav>
+        <nav id="nav-account">
+            
+              <div class="logged_out">
+                  <a href="https://sourceforge.net/auth/">Log In</a>
+                <span>or</span>
+                <a href="https://sourceforge.net/user/registration">Join</a>
+              </div>
+            
+        </nav>
+    </div>
+</header>
+<header id="site-sec-header">
+    <div class="wrapper">
+        <nav id="nav-hubs">
+            <h4>Solution Centers</h4>
+            <a href="http://goparallel.sourceforge.net/">Go Parallel</a>
+        </nav>
+        <nav id="nav-collateral">
+
+            <a href="https://library.slashdotmedia.com/">Resources</a>
+
+            <a href="/user/newsletters?source=sfnet_header">Newsletters</a>
+
+            
+            <a href="/cloud-storage-providers/?source=sfnet_header">Cloud Storage Providers</a>
+            
+            
+            <a href="/business-voip/?source=sfnet_header">Business VoIP Providers</a>
+            
+
+
+        </nav>
+    </div>
+</header>
+
+
+        
+<div id="banner-sterling" class="sterling">
+    
+
+
+
+
+    
+
+
+<div class="sticky-anchor"></div>
+<div class="sticky">
+
+<div id="SF_Temp5_728x90_A_wrapped" class="draper leaderboard  " data-unit="SF_Temp5_728x90_A">
+<script type="text/javascript">
+/*global googletag */
+(function(){
+    
+    document.write('<div id="div-gpt-ad-1392148432591-0" ></div>');
+    googletag.cmd.push(function() {
+        googletag.display('div-gpt-ad-1392148432591-0');
+    });
+}());
+</script>
+</div>
+
+
+</div>
+</div>
+<header id="page-header">
+
+    <div class="wrapper">
+        
+        
+
+
+<div id="downloading" class="project-mirror">
+    <div id="starting" >
+        <div class="project-dl-info">
+            <h1>
+                <a href="/projects/levent/">libevent - an asynchronous event library</a>
+            </h1>
+
+
+            
+<p id="downloader" class="">
+    Your download will start shortly...
+</p>
+
+<div id="progressbar"><div class="progress-label"></div></div>
+
+<script id="redirect-template" type="text/x-handlebars-template">
+Learn more: check out <a href="/projects/levent/postdownload">screenshots, reviews, and more</a>. We'll take you there in a few moments.
+</script>
+<p id="problems">
+
+
+    Problems with the download?  Please use this 
+    <a href="http://downloads.sourceforge.net/project/levent/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz?r=&amp;ts=1464069932&amp;use_mirror=jaist" class="direct-download">
+direct link</a>, or try another 
+    <a href="/settings/mirror_choices?projectname=levent&amp;filename=release-2.0.22-stable/libevent-2.0.22-stable.tar.gz"
+        title="A mirror is an exact copy of a download available in multiple locations around the world.  Select the one closest to your location."
+        class="mirror" data-release-url="http://downloads.sourceforge.net/project/levent/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz?r=&amp;ts=1464069932&amp;use_mirror=jaist" rel="nofollow">
+mirror</a>.
+</p>
+        </div>
+
+    </div>
+    <div id="mirror">
+        Mirror provided by: 
+    
+      
+      
+        
+      
+      <a id="provider_top" href="http://www.jaist.ac.jp/" title="Japan Advanced Institute of Science and Technology"><img class="mirror-logo" src="//a.fsdn.com/mirrorimages/jaist-small.png" alt="Japan Advanced Institute of Science and Technology" width="100" height="41"/></a>
+    
+
+    </div>
+
+    
+    
+
+    
+</div>
+<div id="mirror-drawer"></div>
+
+    </div>
+        
+
+</header>
+        
+<div id="messages">
+</div>
+
+
+
+        <div id="page-body">
+
+
+
+
+
+
+
+
+<div id="sterling-primary" class="content with-sidebar">
+    <div id="template5-container">
+
+        <div class="sterling template5 altered">
+            
+
+
+
+
+    
+    
+
+
+
+<div id="SF_Temp5_multi_A_wrapped" class="draper multisize  " data-unit="SF_Temp5_multi_A">
+<script type="text/javascript">
+/*global googletag */
+(function(){
+    
+    document.write('<div id="div-gpt-ad-1392148432595-0" ></div>');
+    googletag.cmd.push(function() {
+        googletag.display('div-gpt-ad-1392148432595-0');
+    });
+}());
+</script>
+</div>
+
+
+
+            
+                
+
+
+
+
+    
+    
+
+
+
+<div id="SF_Temp5_multi_B_wrapped" class="draper multisize  " data-unit="SF_Temp5_multi_B">
+<script type="text/javascript">
+/*global googletag */
+(function(){
+    
+    document.write('<div id="div-gpt-ad-1392148432596-0" ></div>');
+    googletag.cmd.push(function() {
+        googletag.display('div-gpt-ad-1392148432596-0');
+    });
+}());
+</script>
+</div>
+
+
+            
+
+            
+
+<div id="taboola-below-article-thumbnails"></div>
+<script type="text/javascript">
+/*global _taboola*/
+window._taboola = window._taboola || [];
+_taboola.push({
+    mode: 'thumbnails-b',
+    container: 'taboola-below-article-thumbnails',
+    placement: 'Below Article Thumbnails',
+    target_type: 'mix'
+});
+</script>
+
+
+            
+    
+    <div class="top3-widget">
+        <aside class="sidebar-widget">
+        <header>
+        <h3>Top 3 Projects in Networking</h3>
+        </header>
+    <ul class="vertical">
+        
+
+        
+
+            
+                <li class="item odd">
+                <a class="horiz-proj-icon" href="/projects/filezilla/?source=top3_dlp_t5"
+                        title="FileZilla"><img alt="Icon" src="//a.fsdn.com/allura/p/filezilla/icon" /></a>
+                <div class="pinfo-content top3_dlp_t5">
+                <a class="project-name" href="/projects/filezilla/?source=top3_dlp_t5"
+                        title="Learn more about FileZilla ">FileZilla</a>
+                        <div class="top3-project-summary">
+                        A fast cross-platform FTP client
+                        </div>
+                    </div>
+                    <div class="dl-content top3_dlp_t5">
+                        <a href="/projects/filezilla/files/latest/download?source=top3_dlp_t5" title="FileZilla" class="sfdl sfdl-lite">Download</a>
+                    </div>
+
+            </li>
+            
+                <li class="item even">
+                <a class="horiz-proj-icon" href="/projects/scrollout/?source=top3_dlp_t5"
+                        title="Scrollout F1"><img alt="Icon" src="//a.fsdn.com/allura/p/scrollout/icon" /></a>
+                <div class="pinfo-content top3_dlp_t5">
+                <a class="project-name" href="/projects/scrollout/?source=top3_dlp_t5"
+                        title="Learn more about Scrollout F1 ">Scrollout F1</a>
+                        <div class="top3-project-summary">
+                        An easy-to-use anti-spam email gateway
+                        </div>
+                    </div>
+                    <div class="dl-content top3_dlp_t5">
+                        <a href="/projects/scrollout/files/latest/download?source=top3_dlp_t5" title="Scrollout F1" class="sfdl sfdl-lite">Download</a>
+                    </div>
+
+            </li>
+            
+                <li class="item odd last">
+                <a class="horiz-proj-icon" href="/projects/autoap/?source=top3_dlp_t5"
+                        title="AutoAP"><img alt="Icon" src="//a.fsdn.com/con/icons/au/autoap%40sf.net/autoap_default.png" /></a>
+                <div class="pinfo-content top3_dlp_t5">
+                <a class="project-name" href="/projects/autoap/?source=top3_dlp_t5"
+                        title="Learn more about AutoAP ">AutoAP</a>
+                        <div class="top3-project-summary">
+                        A script to find open Wi-Fi connections and the strongest signal
+                        </div>
+                    </div>
+                    <div class="dl-content top3_dlp_t5">
+                        <a href="/projects/autoap/files/latest/download?source=top3_dlp_t5" title="AutoAP" class="sfdl sfdl-lite">Download</a>
+                    </div>
+
+            </li>
+            
+        
+    </ul>
+</aside>
+
+    </div>
+
+            
+     <div class="dlp_newsletter_subscribe">
+         <h3>Keep Me Updated</h3>
+         <span class="subscribe-tagline">Get project updates, sponsored content from our
+             <br/>select partners and more.</span>
+         
+
+<form action="/user/newsletters/subscribe?source=DLP_T5" method="post" class="newsletter-subscribe-form ">
+    <input type="hidden" name="XcML2yDUpfLysPOiT_AuvWqbFB2c" value="CN">
+    <input type="hidden" name="Xb8L2yDUpfLysPOiT_HBFTFtB1LE" value="ip_address">
+    <input type="hidden" name="XetL2yCk:a:FqJg8BKZwhK01F5zU" value="DLP_T5">
+
+    <div class="subtext">
+        By clicking on "Follow" below, you are agreeing to the <a href="http://slashdotmedia.com/terms-of-use/">Terms of Use</a> and the <a href="http://slashdotmedia.com/privacy-statement/">Privacy Policy</a>.
+    </div>
+        <input type="hidden" name="Xd8_8yigxa7GHOvWEvbZPq9iDBMM" value="sitewide">
+        <input type="hidden" name="Xd8_8yigxa7GHOvWEvbZPq9iDBMM" value="research">
+        <input type="hidden" name="Xd8_8yigxa7GHOvWEvbZPq9iDBMM" value="events">
+        <input type="hidden" name="Xd8_8yigxa7GHOvWEvbZPq9iDBMM" value="thirdparty">
+        <input type="hidden" name="Xd8_8yigxa7GHOvWEvbZPq9iDBMM" value="all">
+        <input type="hidden" name="Xf8r0yH_Ed00F7zTgkUxAc89kKYA" value="levent">
+    
+
+
+    <div class="row">
+        
+        <div class="nsw-error-container input-set small-12 medium-8 columns tightest">
+            <div class="error-message"><i>Invalid email address. Please try again.</i></div>
+            <input type="email" class="subscriber-email" name="XecT03DIxKlyK13FHKjg:QFhjVoM" placeholder="Enter your email address" value="" required>
+        </div>
+        
+        
+
+        <p class="subscriber-existing-email" style="display: none"> Sent to None.
+        
+        </p>
+
+        <button type="submit" class="subscriber-submit  small-12 medium-4 right columns tightest">
+            <span>
+                Follow
+            </span>
+        </button>
+    </div>
+
+    
+  <input type="hidden" name="_visit_cookie" value="56f4b5fed059df6ebd473513"/>
+    <input type='hidden' name='timestamp' value='1464069932'/>
+    <input type='hidden' name='spinner' value='XfKGZvVtdDsXzX4f3mS82Iy4zt9Q'/>
+    <p class='Ree547d9ed3318df455f0c5c743fb019d98d2b938'><label for='Xe8n20z4kPvXXxv5_b5:FNCZQwYQ'>You seem to have CSS turned off.
+             Please don't fill out this field.</label><input id='Xe8n20z4kPvXXxv5_b5:FNCZQwYQ' name='Xesn20z4kPuFqJg8BKZwhK01F5zU' type=
+             'text'/></p>
+    <p class='Ree547d9ed3318df455f0c5c743fb019d98d2b938'><label for='Xe8n20z4kPvTXxv5_b5:FNCZQwYQ'>You seem to have CSS turned off.
+             Please don't fill out this field.</label><input id='Xe8n20z4kPvTXxv5_b5:FNCZQwYQ' name='Xesn20z4kP:FqJg8BKZwhK01F5zU' type=
+             'text'/></p>
+</form>
+
+
+     </div>
+
+
+        </div>
+        
+        
+<div class="sidebar template5">
+    
+
+    
+
+
+
+
+    
+    
+
+
+
+<div id="SF_Temp5_300x250_A_wrapped" class="draper multisize  " data-unit="SF_Temp5_300x250_A">
+<script type="text/javascript">
+/*global googletag */
+(function(){
+    
+    document.write('<div id="div-gpt-ad-1392148432593-0" ></div>');
+    googletag.cmd.push(function() {
+        googletag.display('div-gpt-ad-1392148432593-0');
+    });
+}());
+</script>
+</div>
+
+
+
+        
+        
+
+
+
+
+    
+
+
+
+<div id="SF_Temp5_300x250_B_wrapped" class="draper medrec  " data-unit="SF_Temp5_300x250_B">
+<script type="text/javascript">
+/*global googletag */
+(function(){
+    
+    document.write('<div id="div-gpt-ad-1392148432594-0" ></div>');
+    googletag.cmd.push(function() {
+        googletag.display('div-gpt-ad-1392148432594-0');
+    });
+}());
+</script>
+</div>
+
+
+        
+
+        
+        
+
+
+
+
+    
+
+
+
+<div id="SF_Temp5_300x250_C_wrapped" class="draper medrec  " data-unit="SF_Temp5_300x250_C">
+<script type="text/javascript">
+/*global googletag */
+(function(){
+    
+    document.write('<div id="div-gpt-ad-1392148432598-0" ></div>');
+    googletag.cmd.push(function() {
+        googletag.display('div-gpt-ad-1392148432598-0');
+    });
+}());
+</script>
+</div>
+
+
+        
+
+        
+
+
+
+
+    
+
+
+
+<div id="SF_Temp5_300x450_A_wrapped" class="draper   " data-unit="SF_Temp5_300x450_A">
+<script type="text/javascript">
+/*global googletag */
+(function(){
+    
+    document.write('<div id="div-gpt-ad-1431036742251-0" ></div>');
+    googletag.cmd.push(function() {
+        googletag.display('div-gpt-ad-1431036742251-0');
+    });
+}());
+</script>
+</div>
+
+
+
+    
+</div>
+
+        
+
+        
+
+
+
+
+    
+
+
+
+<div id="SF_Temp5_728x90_B_wrapped" class="draper leaderboard  " data-unit="SF_Temp5_728x90_B">
+<script type="text/javascript">
+/*global googletag */
+(function(){
+    
+    document.write('<div id="div-gpt-ad-1392148432592-0" ></div>');
+    googletag.cmd.push(function() {
+        googletag.display('div-gpt-ad-1392148432592-0');
+    });
+}());
+</script>
+</div>
+
+
+        
+
+        
+
+    </div> 
+</div> 
+
+
+<script type="text/javascript">
+SF.Ads.showContentForAdblock();
+</script>
+
+
+
+        </div>
+        
+
+          
+<footer id="site-footer">
+    <div class="wrapper">
+        <nav>
+            <h5>SourceForge</h5>
+            <a href="/about">About</a>
+            <a href="/blog/category/sitestatus/">Site Status</a>
+            <a href="http://twitter.com/sfnet_ops">@sfnet_ops</a>
+
+
+        </nav>
+        <nav>
+            <h5>Find and Develop Software</h5>
+            <a href="/create/">Create a Project</a>
+            <a href="/directory/">Software Directory</a>
+            <a href="/top">Top Downloaded Projects</a>
+        </nav>
+        <nav>
+            <h5>Community</h5>
+            <a href="/blog/">Blog</a>
+            <a href="http://twitter.com/sourceforge">@sourceforge</a>
+            <a href="https://library.slashdotmedia.com/">Resources</a>
+        </nav>
+        <nav>
+            <h5>Help</h5>
+            <a href="http://p.sf.net/sourceforge/docs">Site Documentation</a>
+            <a href="/support">Support Request</a>
+            
+        </nav>
+    </div>
+</footer>
+<footer id="site-copyright-footer">
+    <div class="wrapper">
+        <div id="copyright">
+            &copy; 2016 Slashdot Media. All Rights Reserved.<br />
+        </div>
+        <nav>
+            <a href="https://slashdotmedia.com/terms-of-use/">Terms</a>
+            <a href="https://slashdotmedia.com/privacy-statement/">Privacy</a>
+            <span id='teconsent'></span>
+            <a href="https://slashdotmedia.com/opt-out-choices/">Opt Out Choices</a>
+            <a href="https://slashdotmedia.com">Advertise</a>
+        </nav>
+    </div>
+</footer>
+    <script type="text/javascript">
+        SF.pspRedirect = true;
+        SF.pdlpRedirect = true; //pdlp trafficking %row is active, and its ROW.
+
+        SF.downloadRedirectDelay = 60000;
+        SF.ios = false;
+
+        $.extend(SF, {"downloadDelay": 5000, "noCountDown": false, "shortname": "levent"});
+            SF.Ads.enableLeadgenResize = true;
+    </script>
+        <script src="//a.fsdn.com/con/js/min/sf.dwnld.js?1464017326" type="text/javascript"></script>
+    
+
+
+        
+            <script type="text/javascript" src="//consent-st.truste.com/get?name=notice.js&amp;domain=slashdot.org&amp;c=teconsent&amp;text=true"></script>
+            <noscript><p><img src="//analytics.slashdotmedia.com/sf.php?idsite=39" style="border:0;" alt="" /></p></noscript>
+    
+    
+
+<script type="text/javascript">
+/*global _taboola*/
+window._taboola = window._taboola || [];
+_taboola.push({flush: true});
+</script>
+
+
+        
+      </body>
+</html>

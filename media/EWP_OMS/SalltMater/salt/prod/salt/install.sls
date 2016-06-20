@@ -1,0 +1,1 @@
+# install salt-master salt-ssh salt-api
