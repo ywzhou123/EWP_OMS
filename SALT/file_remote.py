@@ -8,6 +8,7 @@ from SaltAPI import SaltAPI
 from EWP_OMS.settings import *
 import os
 from urllib import quote
+import re
 #文件管理页面
 @login_required
 def file_remote(request,server_id):
@@ -61,7 +62,10 @@ def file_remote(request,server_id):
                         # result = {'error':u"文件格式不允许访问，请检查setting.FILE_FORMAT！"}
                         context['error']=u"文件格式不允许访问，请检查setting.FILE_FORMAT！"
                     path_str=path.rstrip('/').split('/')
-                    dir='/'.join(path_str[0:-1])
+                    if len(path_str)>2:
+                        dir='/'.join(path_str[0:-1])
+                    else:
+                        dir='/'
                 else:
                     context['error']=u"目标不存在或者不是目录或文件！"
 
@@ -82,7 +86,6 @@ def file_remote(request,server_id):
                 context['error']=e
 
     return render(request,'SALT/file_remote.html',context)
-
 #重命名目录或文件
 @login_required
 def file_remote_rename(request):
@@ -95,8 +98,8 @@ def file_remote_rename(request):
             salt_server = SaltServer.objects.get(id=server)
             sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
             dst = '/'.join(path.split('/')[0:-1])+'/'+name
-            obj=['client=local','tgt=%s'%tgt,'fun=file.rename','arg=%s'%quote(path.encode("utf-8")),'arg=%s'%quote(dst.encode("utf-8"))]
-            r=sapi.RepeatArgs(obj)['return'][0][tgt]
+
+            r=sapi.SaltCmd(tgt,'file.rename',client='local',arg1=path.encode("utf-8"),arg2=dst.encode("utf-8"))['return'][0][tgt]
             if r == True:
                 result = {'ret':1,'msg':u'"%s"已成功重命名为"%s"！' % (path,dst),'dst':dst.encode("utf-8")}
             else:
@@ -150,11 +153,12 @@ def file_remote_write(request):
         try:
             salt_server = SaltServer.objects.get(id=server)
             sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-            if sapi.SaltCmd(client='local',tgt=tgt,fun='file.file_exists',arg=path.encode("utf-8"))['return'][0][tgt]:
-                #quoto是将参数进行urlencode化，主要是处理字符和中文
-                obj=['client=local','tgt=%s'%tgt,'fun=file.write','arg=%s'%quote(path.encode("utf-8")),'arg=%s'%quote(content.encode("utf-8"))]
-                result=sapi.RepeatArgs(obj)['return'][0][tgt]
-                # result=u'文件%s修改成功！' % path
+            if sapi.SaltCmd(tgt,'file.file_exists',client='local',arg=path.encode("utf-8"))['return'][0][tgt]:
+                r=sapi.SaltCmd(tgt,'file.write',client='local',arg1=path.encode("utf-8"),arg2=content.encode("utf-8"))['return'][0][tgt]
+                if re.search('1',r):
+                    result=u'文件%s修改成功！' % path
+                else:
+                    result=u'文件%s修改失败！' % path
             else:
                 result = u"文件不存在"
         except Exception as e:

@@ -42,7 +42,7 @@
 
 {#    信息摘要#}
         <div class="alert alert-success">
-            <strong>当前路径：<a href="{{ svn.url }}" target="_blank" title="SVN WEB URL"><span class="text-danger">..{{ dir }}</span></a>&nbsp;&nbsp;&nbsp;&nbsp;
+            <strong>当前路径：<a href="{{ svn.url }}" target="_blank" title="SVN WEB URL"><span class="text-danger">{{ root }}{{ dir }}</span></a>&nbsp;&nbsp;&nbsp;&nbsp;
                 <span {% if dir == '/' %} hidden {% endif %}>
                     {% if type == 'File' %}文件名称：<span class="text-danger">{{ base }}</span>&nbsp;&nbsp;&nbsp;&nbsp;
                         文件大小：<span class="text-danger">{{ size|filesizeformat }}</span>{% endif %}&nbsp;&nbsp;&nbsp;&nbsp;

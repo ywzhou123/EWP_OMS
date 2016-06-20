@@ -295,9 +295,9 @@ def config(request,server_id):
         if env:
             if file:
                 if content:#写入文件内容，文件会产生[noeol]问题，暂时不用此功能
-                    arg='path==%s,,data==%s,,saltenv==%s'%(file,content,env)
+                    # arg='path==%s,,data==%s,,saltenv==%s'%(file,content,env)
                     try:
-                        r=sapi.SaltRun(client='wheel',fun='file_roots.write',arg=arg)
+                        r=sapi.SaltRun(client='wheel',fun='file_roots.write',path=file,data=content,saltenv=env)
                         success=r['return'][0]['data']['success']
                         if success:
                             res=u"文件%s保存成功！"%file
@@ -308,8 +308,8 @@ def config(request,server_id):
                 else:#读取环境下文件内容
                     try:
                         path=configs['file_roots'][env][0]+file
-                        arg='path==%s,,saltenv==%s'%(path,env)
-                        r=sapi.SaltRun(client='wheel',fun='file_roots.read',arg=arg)
+                        # arg='path==%s,,saltenv==%s'%(path,env)
+                        r=sapi.SaltRun(client='wheel',fun='file_roots.read',path=path,saltenv=env)
                         res=r['return'][0]['data']['return']
                         if isinstance(res,str):
                             res={'Error':res}
@@ -321,7 +321,7 @@ def config(request,server_id):
                         print error
             else:#列出环境下的文件
                 try:
-                    r=sapi.SaltRun(client='runner',fun='fileserver.file_list',arg='saltenv==%s'%env)
+                    r=sapi.SaltRun(client='runner',fun='fileserver.file_list',saltenv=env)
                     fs=r['return'][0]
                     res=[]
                     for f in fs:

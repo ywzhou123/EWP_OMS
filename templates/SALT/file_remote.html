@@ -29,22 +29,11 @@
                     {% endfor %}
                 </ul>
             </div>
-{#                SVN操作功能#}
-            <div class="btn-group pull-right">
-                <button class="btn btn-info" type="button" title="提交" onclick="svn('commit','{{ dir }}')"><span class="glyphicon glyphicon-send"></span></button>
-                <button class="btn btn-info" type="button" title="更新" onclick="svn('update','{{ dir }}')"><span class="glyphicon glyphicon-refresh"></span></button>
-                <button class="btn btn-info" type="button" title="还原" onclick="svn('revert','{{ dir }}')"><span class="glyphicon glyphicon-repeat"></span></button>
-                <button class="btn btn-info" type="button" title="检出" data-toggle="modal" data-target="#modal_checkout" ><span class="glyphicon glyphicon-export"></span></button>
-                &nbsp;&nbsp;
-            </div>
 {#                文件操作功能#}
             <div class="btn-group pull-right">
-{#                <a class="btn btn-info" href="{% url 'salt:file_local' %}?updir={{ dir }}" title="返回上层"><span class="glyphicon glyphicon-chevron-up"></span></a>#}
                 <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_create" title="新建" ><span class="glyphicon glyphicon-plus"></span></button>
                 <button class="btn btn-info" type="button" title="删除" id="delete"><span class="glyphicon glyphicon-minus"></span></button>
                 <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_rename" title="重命名"><span class="glyphicon glyphicon-pencil"></span></button>
-{#                <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_upload" title="上传"><span class="glyphicon glyphicon-open"></span></button>#}
-{#                <a class="btn btn-info" title="下载"  {% if type == 'File' %}href="/salt/media{{ dir }}{{ base }}" {% else %}href="javascript:volid(0);" disabled {% endif %}><span class="glyphicon glyphicon-save"></span></a>#}
                 <button class="btn btn-info" type="button" title="保存" id="write" ><span class="glyphicon glyphicon-floppy-saved"></span></button>
                 &nbsp;&nbsp;
             </div>
@@ -204,70 +193,6 @@
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
-{#   签出模态框#}
-    <div class="modal fade" id="modal_checkout" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h2 class="modal-title text-center">SVN签出目录</h2>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-sm-4 col-md-4">
-                            <label class="pull-right">根路径：</label>
-                        </div>
-                        <div class="col-sm-8 col-md-8">
-                            <span class="bg-info">{{ root }}</span>
-                        </div>
-                    </div>
-                    <br>
-                    <div class="row">
-                        <div class="col-sm-4 col-md-4">
-                            <label class="pull-right">SVN地址：</label>
-                        </div>
-                        <div class="col-sm-8 col-md-8">
-                            <input type="text" class="form-control" placeholder="http://svn_server:port/svn/..." id="url">
-                        </div>
-                    </div>
-                    <br>
-                    <div class="row">
-                        <div class="col-sm-4 col-md-4">
-                            <label class="pull-right">SVN账号：</label>
-                        </div>
-                        <div class="col-sm-4 col-md-4">
-                            <input type="text" class="form-control" placeholder="svn username" id="username">
-                        </div>
-                    </div>
-                    <br>
-                    <div class="row">
-                        <div class="col-sm-4 col-md-4">
-                            <label class="pull-right">SVN密码：</label>
-                        </div>
-                        <div class="col-sm-4 col-md-4 ">
-                            <input type="password" class="form-control" placeholder="svn password" id="password">
-                        </div>
-                    </div>
-                    <br>
-                    <div class="row">
-                        <div class="col-sm-4 col-md-4">
-                            <label class="pull-right">目标目录：</label>
-                        </div>
-                        <div class="col-sm-4 col-md-4">
-                            <input type="text" class="form-control" placeholder="local dir name" id="dir"
-                            onkeypress="if(event.keyCode==13) {checkout.click();return false;}">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-primary"  id="checkout">签出</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                    </div>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
 {% endblock %}
 {% block scripts %}
     <script>
@@ -315,7 +240,7 @@
                     });
                 }
             });
-
+            //删除
             $('#delete').click(function(){
                 var tgt = $('#tgt').val();
                 var path = '{% if stats %}{{ stats.target }}{% else %}{{ dir }}{% endif %}';
