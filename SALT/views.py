@@ -287,7 +287,6 @@ def config(request,server_id):
     configs=result['return'][0]['data']['return']
     context['envs']=sorted(configs['file_roots'].keys())
 
-
     if request.is_ajax() :
         env=request.GET.get('env')
         file=request.GET.get('file')
@@ -308,7 +307,6 @@ def config(request,server_id):
                 else:#读取环境下文件内容
                     try:
                         path=configs['file_roots'][env][0]+file
-                        # arg='path==%s,,saltenv==%s'%(path,env)
                         r=sapi.SaltRun(client='wheel',fun='file_roots.read',path=path,saltenv=env)
                         res=r['return'][0]['data']['return']
                         if isinstance(res,str):
