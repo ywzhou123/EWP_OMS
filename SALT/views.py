@@ -321,12 +321,11 @@ def config(request,server_id):
                         print error
             else:#列出环境下的文件
                 try:
-                    r=sapi.SaltRun(client='runner',fun='fileserver.file_list',saltenv=env)
-                    fs=r['return'][0]
-                    res=[]
-                    for f in fs:
-                        if not re.search('.svn',f) and not re.search('pki/',f):
-                            res.append(f)
+                    res=sapi.SaltRun(client='runner',fun='fileserver.file_list',saltenv=env)['return'][0]
+                    # res=[]
+                    # for f in fs:
+                    #     if not re.search('.svn',f) and not re.search('pki/',f):
+                    #         res.append(f)
                 except Exception as error:
                     res=[str(error)]
         else:
