@@ -272,12 +272,6 @@ def execute(request):
         context['error']=error
     return render(request,'SALT/execute.html',context)
 @login_required
-def deploy(request):
-    idc_list = IDC.objects.order_by('name')
-    idc=request.GET.get('idc',idc_list[0].id)
-    context={'idc_list':idc_list,'idc':long(idc)}
-    return render(request,'SALT/deploy.html',context)
-@login_required
 def config(request,server_id):
     server_list=SaltServer.objects.all()
     salt_server = SaltServer.objects.get(id=server_id)
@@ -286,17 +280,17 @@ def config(request,server_id):
     result=sapi.SaltRun(client='wheel',fun='config.values')
     configs=result['return'][0]['data']['return']
     context['envs']=sorted(configs['file_roots'].keys())
-
+    # context['envs']=sapi.SaltRun(client='runner',fun='fileserver.envs')['return'][0]
     if request.is_ajax() :
         env=request.GET.get('env')
         file=request.GET.get('file')
         content=request.GET.get('content')
         if env:
             if file:
-                if content:#写入文件内容，文件会产生[noeol]问题，暂时不用此功能
-                    # arg='path==%s,,data==%s,,saltenv==%s'%(file,content,env)
+                if content:#写入文件内容，文件会产生[noeol]问题，因此需要在内容最后加个结束符\n
                     try:
-                        r=sapi.SaltRun(client='wheel',fun='file_roots.write',path=file,data=content,saltenv=env)
+                        r=sapi.SaltRun(client='wheel',fun='file_roots.write',path=file,data=content+'\n',saltenv=env)
+                        # r=sapi.SaltRun(client='wheel',fun='config.update_config',file_name='test',yaml_contents='{a:1}')
                         success=r['return'][0]['data']['success']
                         if success:
                             res=u"文件%s保存成功！"%file
@@ -306,25 +300,18 @@ def config(request,server_id):
                         res=str(error)
                 else:#读取环境下文件内容
                     try:
-                        path=configs['file_roots'][env][0]+file
+                        path=configs['file_roots'][env][0]+file #每个环境最好只定义一个目录
                         r=sapi.SaltRun(client='wheel',fun='file_roots.read',path=path,saltenv=env)
                         res=r['return'][0]['data']['return']
                         if isinstance(res,str):
                             res={'Error':res}
                         else:
                             res=res[0]
-                        print type(res),res
                     except Exception as error:
                         res={'Error':str(error)}
-                        print error
             else:#列出环境下的文件
                 try:
-                    r=sapi.SaltRun(client='runner',fun='fileserver.file_list',saltenv=env)
-                    fs=r['return'][0]
-                    res=[]
-                    for f in fs:
-                        if not re.search('.svn',f) and not re.search('pki/',f):
-                            res.append(f)
+                    res=sapi.SaltRun(client='runner',fun='fileserver.file_list',saltenv=env)['return'][0] #.svn .git已在files.conf配置中过滤
                 except Exception as error:
                     res=[str(error)]
         else:

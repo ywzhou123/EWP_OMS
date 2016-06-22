@@ -7,7 +7,7 @@
             white-space: pre;
             font-family: Courier, monospace;
             width:100%;
-            height:460px;
+            height:540px;
             background-color: black;
             color: #ffffff;
         }
@@ -36,7 +36,7 @@
             <div class="col-xs-4 col-md-4">
                 <div class="form-group">
                     <label for="env">环境列表</label>
-                    <select class="form-control" size="5" id="env">
+                    <select class="form-control" size="6" id="env">
                         {% for env in envs %}
                         <option value="{{ env }}">{{ env }}</option>
                         {% endfor %}
@@ -47,14 +47,14 @@
                     <select class="form-control" size="18" id="file">
                     </select>
                 </div>
-{#                <button type="button" id="write" class="btn btn-info btn-lg btn-block">Write</button>#}
+                <button type="button" id="write" class="btn btn-info btn-lg btn-block">Write</button>
             </div>
             <div class="col-xs-8 col-md-8">
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <label for="content">模块文件<code id="name"></code>的内容</label>
                         <div class="form-group">
-                            <textarea id="content" disabled="disabled"></textarea>
+                            <textarea id="content"></textarea>
                         </div>
                     </div>
                 </div>
@@ -69,7 +69,7 @@
     <script src="{% static 'salt/js/formatJSON.js' %}"></script>
 <script>
     //选择环境显示文件列表
-    $('#env').change(function(){
+    $('#env').click(function(){
         var env=$(this).val() ;
         $('#file').html("");
         $.getJSON("{% url 'salt:config' salt_server.id %}", {env: env}, function (result) {

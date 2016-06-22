@@ -187,3 +187,31 @@ def file_remote_delete(request):
             result = {'ret':0,'msg':u'错误：%s' % e}
         print result
         return JsonResponse(result,safe=False)
+
+@login_required
+def deploy(request):
+    idc_list = IDC.objects.order_by('name')
+    idc=request.GET.get('idc',idc_list[0].id)
+    context={'idc_list':idc_list,'idc':long(idc)}
+
+
+    if request.is_ajax() and request.method == 'GET':
+        path=request.GET.get('path')
+        tgt=request.GET.get('tgt')
+        server=request.GET.get('server')
+        url=request.GET.get('url')
+        username=request.GET.get('username')
+        password=request.GET.get('password')
+
+        try:
+            salt_server = SaltServer.objects.get(id=server)
+            sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+            if sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=path.encode("utf-8"))['return'][0][tgt]:
+                result = {'ret':1,'msg':u'目标"%s"删除成功！' % path,'dir':dir}
+            else:
+                result = {'ret':0,'msg':u'目标"%s"删除失败！' % path}
+        except Exception as e:
+            result = {'ret':0,'msg':u'错误：%s' % e}
+        return JsonResponse(result,safe=False)
+
+    return render(request,'SALT/deploy.html',context)

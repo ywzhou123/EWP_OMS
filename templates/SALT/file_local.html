@@ -21,20 +21,20 @@
             本地文件管理
 {#                SVN操作功能#}
             <div class="btn-group pull-right">
-                <button class="btn btn-info" type="button" title="提交" onclick="svn('commit','{{ dir }}')"><span class="glyphicon glyphicon-send"></span></button>
-                <button class="btn btn-info" type="button" title="更新" onclick="svn('update','{{ dir }}')"><span class="glyphicon glyphicon-refresh"></span></button>
-                <button class="btn btn-info" type="button" title="还原" onclick="svn('revert','{{ dir }}')"><span class="glyphicon glyphicon-repeat"></span></button>
+                <button class="btn btn-info" type="button" title="提交" onclick="svn('commit','{{ dir }}')" {% if not svn.vision %} disabled="disabled" {% endif %}><span class="glyphicon glyphicon-send"></span></button>
+                <button class="btn btn-info" type="button" title="更新" onclick="svn('update','{{ dir }}')" {% if not svn.vision %} disabled="disabled" {% endif %}><span class="glyphicon glyphicon-refresh"></span></button>
+                <button class="btn btn-info" type="button" title="还原" onclick="svn('revert','{{ dir }}')" {% if not svn.vision %} disabled="disabled" {% endif %}><span class="glyphicon glyphicon-repeat"></span></button>
                 <button class="btn btn-info" type="button" title="检出" data-toggle="modal" data-target="#modal_checkout" ><span class="glyphicon glyphicon-export"></span></button>
             </div>
 {#                文件操作功能#}
             <div class="btn-group pull-right">
                 <a class="btn btn-info" href="{% url 'salt:file_local' %}?updir={{ dir }}" title="返回上层"><span class="glyphicon glyphicon-chevron-up"></span></a>
                 <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_create" title="新建" ><span class="glyphicon glyphicon-plus"></span></button>
-                <button class="btn btn-info" type="button" title="删除" id="delete" {% if dir == '/' %}disabled{% endif %}><span class="glyphicon glyphicon-minus"></span></button>
+                <button class="btn btn-info" type="button" title="删除" id="delete" {% if dir == '/' %}disabled="disabled"{% endif %}><span class="glyphicon glyphicon-minus"></span></button>
                 <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_rename" title="重命名"><span class="glyphicon glyphicon-pencil"></span></button>
                 <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_upload" title="上传"><span class="glyphicon glyphicon-open"></span></button>
-                <a class="btn btn-info" title="下载"  {% if type == 'File' %}href="/salt/media{{ dir }}{{ base }}" {% else %}href="javascript:volid(0);" disabled {% endif %}><span class="glyphicon glyphicon-save"></span></a>
-                <button class="btn btn-info" type="button" title="保存" id="write" {% if type != 'File' or nowrite %} disabled {% endif %}><span class="glyphicon glyphicon-floppy-saved"></span></button>
+                <a class="btn btn-info" title="下载"  {% if type == 'File' %}href="/salt/media{{ dir }}{{ base }}" {% else %}href="javascript:volid(0);" disabled="disabled" {% endif %}><span class="glyphicon glyphicon-save"></span></a>
+                <button class="btn btn-info" type="button" title="保存" id="write" {% if type != 'File' or nowrite %} disabled="disabled" {% endif %}><span class="glyphicon glyphicon-floppy-saved"></span></button>
                 &nbsp;&nbsp;
             </div>
         </h2>

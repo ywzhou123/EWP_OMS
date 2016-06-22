@@ -38,7 +38,10 @@ class SaltAPI:
     def PostRequest(self, obj, prefix='/'):
         url = self.__url + prefix
         headers = {'X-Auth-Token': self.__token_id}
-        data, number = re.subn("arg\d", 'arg', obj) #将arg1 arg2这些关键字都替换成arg，number为替换次数
+        if obj:
+            data, number = re.subn("arg\d", 'arg', obj) #将arg1 arg2这些关键字都替换成arg，number为替换次数
+        else:
+            data=obj
         req = urllib2.Request(url, data, headers)  # obj为传入data参数字典，data为None 则方法为get，有date为post方法
         opener = urllib2.urlopen(req)
         content = json.loads(opener.read())
