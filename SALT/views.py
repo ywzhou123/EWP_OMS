@@ -311,15 +311,12 @@ def config(request,server_id):
                         res={'Error':str(error)}
             else:#列出环境下的文件
                 try:
-<<<<<<< HEAD
                     res=sapi.SaltRun(client='runner',fun='fileserver.file_list',saltenv=env)['return'][0]
                     # res=[]
                     # for f in fs:
                     #     if not re.search('.svn',f) and not re.search('pki/',f):
                     #         res.append(f)
-=======
                     res=sapi.SaltRun(client='runner',fun='fileserver.file_list',saltenv=env)['return'][0] #.svn .git已在files.conf配置中过滤
->>>>>>> dev
                 except Exception as error:
                     res=[str(error)]
         else:
@@ -337,6 +334,7 @@ def deploy(request,server_id):
         salt_server = SaltServer.objects.get(id=server_id)
     except:#id不存在时返回第一个
         salt_server = SaltServer.objects.all()[0]
+
     project_list=SvnProject.objects.filter(salt_server=salt_server).order_by('host')
     context={'server_list':server_list,'salt_server':salt_server,'project_list':project_list}
 
@@ -344,12 +342,35 @@ def deploy(request,server_id):
         sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
         result=sapi.SaltRun(client='runner',fun='manage.status')
         context['minions_up']=result['return'][0]['up']
+
+        for project in project_list:
+            path=project.path+'/'+project.target
+            svn_info=sapi.SaltCmd(client='local',tgt=project.host,fun='svn.info',arg=path,arg1='fmt=dict')['return'][0][project.host][0]
+            if isinstance(svn_info,dict):
+                if project.url == svn_info['URL']:
+                    project(status=u"已发布",info=svn_info)
+                else:
+                    project.status=u"冲突"
+                    project.info=u"SVN路径不匹配：本地SVN为'%s'，项目SVN为'%s'"%(svn_info['URL'],project.url)
+                project.save()
+            else:
+                #根路径不存在时创建
+                if not sapi.SaltCmd(client='local',tgt=project.host,fun='file.directory_exists',arg=project.path)['return'][0][project.host]:
+                    sapi.SaltCmd(client='local',tgt=project.host,fun='file.mkdir',arg=project.path)
+                #目录未被版本控制，可能SVN未安装
+                if  not sapi.SaltCmd(client='local',tgt=project.host,fun='pkg.version',arg='subversion')['return'][0][project.host]:
+                    sapi.SaltCmd(client='local',tgt=project.host,fun='pkg.install',arg='subversion')
+                sapi.SaltCmd(client='local',tgt=project.host,fun='svn.checkout',arg=project.path,arg0='targets=%s'%project.target,arg1='remote=%s'%project.url,arg2='username=%s'%project.username,arg3='password=%s'%project.password)
     except Exception as error:
         context['error']=error
+
+
+
     #针对SVN功能按钮
     if request.is_ajax() and request.method == 'GET':
-        path=request.GET.get('path').encode("utf-8")
         tgt=request.GET.get('tgt')
+        path=request.GET.get('path').encode("utf-8")
+        target=request.GET.get('target')
         url=request.GET.get('url')
         username=request.GET.get('username')
         password=request.GET.get('password')
@@ -357,18 +378,14 @@ def deploy(request,server_id):
 
         if tgt and path:
             try:
-                projects=SvnProject.objects.filter(host=tgt)
-                project=None
-                for p in projects:
-                    if path.startswith(p.path):
-                        project=p
+                # projects=SvnProject.objects.filter(host=tgt)
+                # project=None
+                # for p in projects:
+                #     if path.startswith(p.path):
+                #         project=p
 
-                salt_server = SaltServer.objects.get(id=server_id)
-                sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
                 #签出
                 if url and username and password:
-
-
                     if project:
                         project.info=1
                         project.status=u"已发布"
@@ -379,6 +396,26 @@ def deploy(request,server_id):
                         result = {'ret':1,'msg':r}
                         svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=path)['return'][0][tgt][0]
                         SvnProject.objects.get_or_create(salt_server=salt_server,host=tgt,path=path,url=url,username=username,password=password,status=u"已发布",info=svn_info)
+
+                    project=SvnProject.objects.get(tgt=tgt,path=path,target=target)
+                    path=project.path+'/'+project.target
+                    svn_info=sapi.SaltCmd(client='local',tgt=project.host,fun='svn.info',arg=path,arg1='fmt=dict')['return'][0][project.host][0]
+                    if isinstance(svn_info,dict):
+                        if project.url == svn_info['URL']:
+                            project(status=u"已发布",info=svn_info)
+                        else:
+                            project.status=u"冲突"
+                            project.info=u"SVN路径不匹配：本地SVN为'%s'，项目SVN为'%s'"%(svn_info['URL'],project.url)
+                        project.save()
+                    else:
+                        #根路径不存在时创建
+                        if not sapi.SaltCmd(client='local',tgt=project.host,fun='file.directory_exists',arg=project.path)['return'][0][project.host]:
+                            sapi.SaltCmd(client='local',tgt=project.host,fun='file.mkdir',arg=project.path)
+                        #目录未被版本控制，可能SVN未安装
+                        if  not sapi.SaltCmd(client='local',tgt=project.host,fun='pkg.version',arg='subversion')['return'][0][project.host]:
+                            sapi.SaltCmd(client='local',tgt=project.host,fun='pkg.install',arg='subversion')
+                        sapi.SaltCmd(client='local',tgt=project.host,fun='svn.checkout',arg=project.path,arg0='targets=%s'%project.target,arg1='remote=%s'%project.url,arg2='username=%s'%project.username,arg3='password=%s'%project.password)
+
                 #提交
                 elif active=='commit'and project:
                     r=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.commit',arg=path,arg1='msg=commit from %s'%tgt,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
@@ -399,6 +436,7 @@ def deploy(request,server_id):
             except Exception as e:
                 result = {'ret':0,'msg':u'错误：%s' % e}
             return JsonResponse(result,safe=False)
+
 
     return render(request,'SALT/deploy.html',context)
 
