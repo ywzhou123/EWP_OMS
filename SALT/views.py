@@ -272,12 +272,6 @@ def execute(request):
         context['error']=error
     return render(request,'SALT/execute.html',context)
 @login_required
-def deploy(request):
-    idc_list = IDC.objects.order_by('name')
-    idc=request.GET.get('idc',idc_list[0].id)
-    context={'idc_list':idc_list,'idc':long(idc)}
-    return render(request,'SALT/deploy.html',context)
-@login_required
 def config(request,server_id):
     server_list=SaltServer.objects.all()
     salt_server = SaltServer.objects.get(id=server_id)
@@ -286,18 +280,17 @@ def config(request,server_id):
     result=sapi.SaltRun(client='wheel',fun='config.values')
     configs=result['return'][0]['data']['return']
     context['envs']=sorted(configs['file_roots'].keys())
-
-
+    # context['envs']=sapi.SaltRun(client='runner',fun='fileserver.envs')['return'][0]
     if request.is_ajax() :
         env=request.GET.get('env')
         file=request.GET.get('file')
         content=request.GET.get('content')
         if env:
             if file:
-                if content:#写入文件内容，文件会产生[noeol]问题，暂时不用此功能
-                    # arg='path==%s,,data==%s,,saltenv==%s'%(file,content,env)
+                if content:#写入文件内容，文件会产生[noeol]问题，因此需要在内容最后加个结束符\n
                     try:
-                        r=sapi.SaltRun(client='wheel',fun='file_roots.write',path=file,data=content,saltenv=env)
+                        r=sapi.SaltRun(client='wheel',fun='file_roots.write',path=file,data=content+'\n',saltenv=env)
+                        # r=sapi.SaltRun(client='wheel',fun='config.update_config',file_name='test',yaml_contents='{a:1}')
                         success=r['return'][0]['data']['success']
                         if success:
                             res=u"文件%s保存成功！"%file
@@ -307,25 +300,26 @@ def config(request,server_id):
                         res=str(error)
                 else:#读取环境下文件内容
                     try:
-                        path=configs['file_roots'][env][0]+file
-                        # arg='path==%s,,saltenv==%s'%(path,env)
+                        path=configs['file_roots'][env][0]+file #每个环境最好只定义一个目录
                         r=sapi.SaltRun(client='wheel',fun='file_roots.read',path=path,saltenv=env)
                         res=r['return'][0]['data']['return']
                         if isinstance(res,str):
                             res={'Error':res}
                         else:
                             res=res[0]
-                        print type(res),res
                     except Exception as error:
                         res={'Error':str(error)}
-                        print error
             else:#列出环境下的文件
                 try:
+<<<<<<< HEAD
                     res=sapi.SaltRun(client='runner',fun='fileserver.file_list',saltenv=env)['return'][0]
                     # res=[]
                     # for f in fs:
                     #     if not re.search('.svn',f) and not re.search('pki/',f):
                     #         res.append(f)
+=======
+                    res=sapi.SaltRun(client='runner',fun='fileserver.file_list',saltenv=env)['return'][0] #.svn .git已在files.conf配置中过滤
+>>>>>>> dev
                 except Exception as error:
                     res=[str(error)]
         else:
@@ -335,6 +329,77 @@ def config(request,server_id):
     else:
         return render(request,'SALT/config.html',context)
 
+#SVN项目代码发布
+@login_required
+def deploy(request,server_id):
+    server_list=SaltServer.objects.all()
+    try:
+        salt_server = SaltServer.objects.get(id=server_id)
+    except:#id不存在时返回第一个
+        salt_server = SaltServer.objects.all()[0]
+    project_list=SvnProject.objects.filter(salt_server=salt_server).order_by('host')
+    context={'server_list':server_list,'salt_server':salt_server,'project_list':project_list}
 
+    try:
+        sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+        result=sapi.SaltRun(client='runner',fun='manage.status')
+        context['minions_up']=result['return'][0]['up']
+    except Exception as error:
+        context['error']=error
+    #针对SVN功能按钮
+    if request.is_ajax() and request.method == 'GET':
+        path=request.GET.get('path').encode("utf-8")
+        tgt=request.GET.get('tgt')
+        url=request.GET.get('url')
+        username=request.GET.get('username')
+        password=request.GET.get('password')
+        active=request.GET.get('active')
+
+        if tgt and path:
+            try:
+                projects=SvnProject.objects.filter(host=tgt)
+                project=None
+                for p in projects:
+                    if path.startswith(p.path):
+                        project=p
+
+                salt_server = SaltServer.objects.get(id=server_id)
+                sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+                #签出
+                if url and username and password:
+
+
+                    if project:
+                        project.info=1
+                        project.status=u"已发布"
+                        project.save()
+                        result = {'ret':0,'msg':u"此项目路径或其父路径已存在于'%s'，状态为'%s'"%(project,project.status)}
+                    else:
+                        r=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.checkout',arg=path,arg1='remote=%s'%url,arg2='username=%s'%username,arg3='password=%s'%password)['return'][0][tgt]
+                        result = {'ret':1,'msg':r}
+                        svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=path)['return'][0][tgt][0]
+                        SvnProject.objects.get_or_create(salt_server=salt_server,host=tgt,path=path,url=url,username=username,password=password,status=u"已发布",info=svn_info)
+                #提交
+                elif active=='commit'and project:
+                    r=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.commit',arg=path,arg1='msg=commit from %s'%tgt,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
+                    result = {'ret':0,'msg':r}
+                #更新（先提交否则会冲突）
+                elif active=='update' and project:
+                    r1=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.commit',arg=path,arg1='msg=commit from %s'%tgt,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
+                    r2=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.update',arg=path,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
+                    result = {'ret':1,'msg':r1+r2}
+                #SvnProject里没有记录时自动创建，但密码需要在后台设置
+                elif  not project:
+                    svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=path,arg1='fmt=dict')['return'][0][tgt][0]
+                    if isinstance(svn_info,dict):
+                        SvnProject.objects.get_or_create(host=tgt,path=path,url=svn_info['URL'],username=svn_info["Last Changed Author"],password='enter your password',status=u"请设置密码")
+                        result = {'ret':0,'msg':u'SVN项目不存在，现已新建，请在后台页面设置SVN密码！'}
+                    else:
+                        result = {'ret':0,'msg':u'错误：%s'%svn_info}
+            except Exception as e:
+                result = {'ret':0,'msg':u'错误：%s' % e}
+            return JsonResponse(result,safe=False)
+
+    return render(request,'SALT/deploy.html',context)
 
 

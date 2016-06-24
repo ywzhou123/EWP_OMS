@@ -60,16 +60,19 @@ class Result(models.Model):
         verbose_name = u'命令返回结果'
         verbose_name_plural = u'命令返回结果'
 
-# class SvnProject(models.Model):
-#     name = models.CharField(max_length=50,verbose_name=u'项目名称')
-#     host = models.ForeignKey(Host,verbose_name=u'项目主机')
-#     local_path = models.CharField(max_length=200,verbose_name=u'项目路径')
-#     url = models.CharField(max_length=200,verbose_name=u'SVN地址')
-#     username = models.CharField(max_length=40,verbose_name=u'SVN账号')
-#     password = models.CharField(max_length=40,verbose_name=u'SVN密码')
-#     info = models.CharField(max_length=100,blank=True,verbose_name=u'备注信息')
-#     def __unicode__(self):
-#         return self.name
-#     class Meta:
-#         verbose_name = u'SVN项目'
-#         verbose_name_plural = u'SVN项目列表'
+class SvnProject(models.Model):
+    name = models.CharField(max_length=50,blank=True,verbose_name=u'项目名称')
+    salt_server = models.ForeignKey(SaltServer,verbose_name=u'Salt服务器')
+    host = models.CharField(max_length=50,verbose_name=u'项目主机')
+    path = models.CharField(max_length=200,verbose_name=u'项目路径')
+    url = models.CharField(max_length=200,verbose_name=u'SVN地址')
+    username = models.CharField(max_length=40,verbose_name=u'SVN账号')
+    password = models.CharField(max_length=40,verbose_name=u'SVN密码')
+    status = models.CharField(max_length=40,default=u'新建',verbose_name=u'发布状态')
+    create_date=models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
+    info = models.TextField(max_length=500,blank=True,verbose_name=u'备注信息')
+    def __unicode__(self):
+        return u"%s: %s - %s"%(self.name,self.host,self.path)
+    class Meta:
+        verbose_name = u'SVN项目'
+        verbose_name_plural = u'SVN项目列表'

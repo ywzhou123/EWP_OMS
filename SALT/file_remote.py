@@ -46,26 +46,29 @@ def file_remote(request,server_id):
                             dir='/'
                     else:
                         dir=path
+                    svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=dir,arg1='fmt=dict')['return'][0][tgt][0]
+                    if isinstance(svn_info,dict):
+                        context['svn']={'URL':svn_info['URL'],'Revision':svn_info['Revision'],'LastChangeDate':svn_info["Last Changed Date"][0:20]}
                 #文件存在时，返回文件内容，加上文件格式、大小限制
                 elif sapi.SaltCmd(client='local',tgt=tgt,fun='file.file_exists',arg=path)['return'][0][tgt]:
                     if os.path.splitext(path)[1] in FILE_FORMAT:
                         stats=sapi.SaltCmd(client='local',tgt=tgt,fun='file.stats',arg=path)['return'][0][tgt]
                         if stats['size'] <= 1024000:
                             content=sapi.SaltCmd(client='local',tgt=tgt,fun='cmd.run',arg='cat '+path)['return'][0][tgt]
-                            # result = {'content':content,'type':'file','pdir':path,'stats':stats}
                             context['content']=content
                             context['stats']=stats
                         else:
-                            # result = {'error':u"文件大小超过1M，拒绝访问！"}
                             context['error']=u"文件大小超过1M，拒绝访问！"
                     else:
-                        # result = {'error':u"文件格式不允许访问，请检查setting.FILE_FORMAT！"}
                         context['error']=u"文件格式不允许访问，请检查setting.FILE_FORMAT！"
                     path_str=path.rstrip('/').split('/')
                     if len(path_str)>2:
                         dir='/'.join(path_str[0:-1])
                     else:
                         dir='/'
+                    svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=dir,arg1='fmt=dict',arg2='targets=%s'%path_str[-1])['return'][0][tgt][0]
+                    if isinstance(svn_info,dict):
+                        context['svn']={'URL':svn_info['URL'],'Revision':svn_info['Revision'],'LastChangeDate':svn_info["Last Changed Date"][0:20]}
                 else:
                     context['error']=u"目标不存在或者不是目录或文件！"
 
@@ -73,7 +76,8 @@ def file_remote(request,server_id):
                 if dir:
                     dirs = sapi.SaltCmd(client='local',tgt=tgt,fun='file.readdir',arg=dir)['return'][0][tgt]
                     try:
-                        dirs.remove('.').remove('.svn')
+                        dirs.remove('.')
+                        dirs.remove('.svn')
                     except:pass
                     if dir=='/':
                         dirs.remove('..')

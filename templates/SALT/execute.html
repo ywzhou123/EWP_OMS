@@ -104,7 +104,8 @@
             <div class="col-sm-5 col-md-5">
                  <div class="form-group">
                     <label for="arg" class="sr-only">*arg</label>
-                    <input class="form-control" type="text" value="" id="arg" placeholder="*args，用逗号分隔参数，使用等号定义参数的键和值。">
+                    <input class="form-control" type="text" value="" id="arg" placeholder="*args，用逗号分隔参数，使用等号定义参数的键和值。"
+                    onkeypress="if(event.keyCode==13) {run.click();return false;}">
                 </div>
             </div>
 {#        执行#}
