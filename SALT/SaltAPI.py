@@ -39,7 +39,7 @@ class SaltAPI:
         url = self.__url + prefix
         headers = {'X-Auth-Token': self.__token_id}
         if obj:
-            data, number = re.subn("arg\d", 'arg', obj) #将arg1 arg2这些关键字都替换成arg，number为替换次数
+            data, number = re.subn("arg\d*", 'arg', obj) #将arg1 arg2这些关键字都替换成arg，number为替换次数
         else:
             data=obj
         req = urllib2.Request(url, data, headers)  # obj为传入data参数字典，data为None 则方法为get，有date为post方法
@@ -56,7 +56,7 @@ class SaltAPI:
                 if len(b)>1:
                     params[b[0]]='='.join(b[1:]) #带=号的参数作为字典传入
                 else:
-                    params['arg%s'%a.index(i)]=i
+                    params['arg%s'%(a.index(i)+100)]=i
         if kwargs:
             params=dict(params.items()+kwargs.items())
         # print params

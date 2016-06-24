@@ -28,7 +28,6 @@
             </div>
 {#                文件操作功能#}
             <div class="btn-group pull-right">
-                <a class="btn btn-info" href="{% url 'salt:file_local' %}?updir={{ dir }}" title="返回上层"><span class="glyphicon glyphicon-chevron-up"></span></a>
                 <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_create" title="新建" ><span class="glyphicon glyphicon-plus"></span></button>
                 <button class="btn btn-info" type="button" title="删除" id="delete" {% if dir == '/' %}disabled="disabled"{% endif %}><span class="glyphicon glyphicon-minus"></span></button>
                 <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal_rename" title="重命名"><span class="glyphicon glyphicon-pencil"></span></button>
@@ -57,6 +56,9 @@
             <div class="col-sm-3 col-md-3">
                 <label>目录列表：</label><br>
                 <div >
+                    {% if dir != '/' %}
+                    <a class="label label-default" href="{% url 'salt:file_local' %}?updir={{ dir }}">..</a><br>
+                    {% endif %}
                     {% for media in media_list %}
                         <a class="label label-default" href="{% url 'salt:file_local' %}?base={{ media }}&dir={{ dir }}">{{ media }}</a><br>
                     {% endfor %}

@@ -46,26 +46,29 @@ def file_remote(request,server_id):
                             dir='/'
                     else:
                         dir=path
+                    svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=dir,arg1='fmt=dict')['return'][0][tgt][0]
+                    if isinstance(svn_info,dict):
+                        context['svn']={'URL':svn_info['URL'],'Revision':svn_info['Revision'],'LastChangeDate':svn_info["Last Changed Date"][0:20]}
                 #文件存在时，返回文件内容，加上文件格式、大小限制
                 elif sapi.SaltCmd(client='local',tgt=tgt,fun='file.file_exists',arg=path)['return'][0][tgt]:
                     if os.path.splitext(path)[1] in FILE_FORMAT:
                         stats=sapi.SaltCmd(client='local',tgt=tgt,fun='file.stats',arg=path)['return'][0][tgt]
                         if stats['size'] <= 1024000:
                             content=sapi.SaltCmd(client='local',tgt=tgt,fun='cmd.run',arg='cat '+path)['return'][0][tgt]
-                            # result = {'content':content,'type':'file','pdir':path,'stats':stats}
                             context['content']=content
                             context['stats']=stats
                         else:
-                            # result = {'error':u"文件大小超过1M，拒绝访问！"}
                             context['error']=u"文件大小超过1M，拒绝访问！"
                     else:
-                        # result = {'error':u"文件格式不允许访问，请检查setting.FILE_FORMAT！"}
                         context['error']=u"文件格式不允许访问，请检查setting.FILE_FORMAT！"
                     path_str=path.rstrip('/').split('/')
                     if len(path_str)>2:
                         dir='/'.join(path_str[0:-1])
                     else:
                         dir='/'
+                    svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=dir,arg1='fmt=dict',arg2='targets=%s'%path_str[-1])['return'][0][tgt][0]
+                    if isinstance(svn_info,dict):
+                        context['svn']={'URL':svn_info['URL'],'Revision':svn_info['Revision'],'LastChangeDate':svn_info["Last Changed Date"][0:20]}
                 else:
                     context['error']=u"目标不存在或者不是目录或文件！"
 
@@ -73,7 +76,8 @@ def file_remote(request,server_id):
                 if dir:
                     dirs = sapi.SaltCmd(client='local',tgt=tgt,fun='file.readdir',arg=dir)['return'][0][tgt]
                     try:
-                        dirs.remove('.').remove('.svn')
+                        dirs.remove('.')
+                        dirs.remove('.svn')
                     except:pass
                     if dir=='/':
                         dirs.remove('..')
@@ -187,31 +191,3 @@ def file_remote_delete(request):
             result = {'ret':0,'msg':u'错误：%s' % e}
         print result
         return JsonResponse(result,safe=False)
-
-@login_required
-def deploy(request):
-    idc_list = IDC.objects.order_by('name')
-    idc=request.GET.get('idc',idc_list[0].id)
-    context={'idc_list':idc_list,'idc':long(idc)}
-
-
-    if request.is_ajax() and request.method == 'GET':
-        path=request.GET.get('path')
-        tgt=request.GET.get('tgt')
-        server=request.GET.get('server')
-        url=request.GET.get('url')
-        username=request.GET.get('username')
-        password=request.GET.get('password')
-
-        try:
-            salt_server = SaltServer.objects.get(id=server)
-            sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-            if sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=path.encode("utf-8"))['return'][0][tgt]:
-                result = {'ret':1,'msg':u'目标"%s"删除成功！' % path,'dir':dir}
-            else:
-                result = {'ret':0,'msg':u'目标"%s"删除失败！' % path}
-        except Exception as e:
-            result = {'ret':0,'msg':u'错误：%s' % e}
-        return JsonResponse(result,safe=False)
-
-    return render(request,'SALT/deploy.html',context)

@@ -19,7 +19,6 @@
             远程文件管理
             <small class="text-danger">{{ salt_server.idc.name }} -- {{ salt_server.url }} -- {{ salt_server.role }}</small>
 {#            Server选择#}
-            <label for="server" disabled="disabled"></label>
             <div class="btn-group pull-right dropdown">
                 <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                     &nbsp;SaltServer&nbsp;<span class="caret"></span></a>
@@ -31,9 +30,9 @@
             </div>
 {#                SVN操作功能#}
             <div class="btn-group pull-right">
-                <button class="btn btn-info" type="button" title="提交" onclick="svn('commit','{{ dir }}')" {% if not svn.vision %} disabled="disabled" {% endif %}><span class="glyphicon glyphicon-send"></span></button>
-                <button class="btn btn-info" type="button" title="更新" onclick="svn('update','{{ dir }}')" {% if not svn.vision %} disabled="disabled" {% endif %}><span class="glyphicon glyphicon-refresh"></span></button>
-                <button class="btn btn-info" type="button" title="还原" onclick="svn('revert','{{ dir }}')" {% if not svn.vision %} disabled="disabled" {% endif %}><span class="glyphicon glyphicon-repeat"></span></button>
+                <button class="btn btn-info" type="button" title="提交" onclick="svn('commit','{{ dir }}')" {% if not svn %} disabled="disabled" {% endif %}><span class="glyphicon glyphicon-send"></span></button>
+                <button class="btn btn-info" type="button" title="更新" onclick="svn('update','{{ dir }}')" {% if not svn %} disabled="disabled" {% endif %}><span class="glyphicon glyphicon-refresh"></span></button>
+{#                <button class="btn btn-info" type="button" title="还原" onclick="svn('revert','{{ dir }}')" {% if not svn %} disabled="disabled" {% endif %}><span class="glyphicon glyphicon-repeat"></span></button>#}
                 <button class="btn btn-info" type="button" title="检出" data-toggle="modal" data-target="#modal_checkout" ><span class="glyphicon glyphicon-export"></span></button>
                 &nbsp;&nbsp;
             </div>
@@ -46,7 +45,18 @@
                 &nbsp;&nbsp;
             </div>
         </h2>
-
+{#    信息摘要#}
+        <div class="alert alert-success">
+            <strong>
+                当前路径：<a href="{{ svn.URL }}" target="_blank" title="SVN WEB URL"><span class="text-danger">{% if stats %}{{ stats.target }}{% else %}{{ dir }}{% endif %}</span></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                {% if stats %}
+                    文件大小：<span class="text-danger">{{ stats.size|filesizeformat }}</span>
+                {% endif %}&nbsp;&nbsp;&nbsp;&nbsp;
+                {% if svn %}
+                    Subversion：<span class="text-danger">版本号:{{ svn.Revision }}&nbsp;&nbsp;最后修改时间:{{ svn.LastChangeDate }}</span>
+                {% endif %}
+            </strong>
+        </div>
         {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
         {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
 {#    tgt+path#}
@@ -94,7 +104,6 @@
             <div class="col-sx-9 col-md-9" >
                 {% if stats %}
                 <label for="content">文件内容：</label>
-                <code>文件路径：{{ stats.target }}  文件大小：{{ stats.size|filesizeformat }}</code>
                 <textarea id="content">{{ content }}</textarea>
                 {% endif %}
             </div>
@@ -212,6 +221,20 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-sm-4 col-md-4">
+                            <label class="pull-right" for="host">目标主机：</label>
+                        </div>
+                        <div class="col-sm-6 col-md-6">
+                            <div class="form-group">
+                                <select class="form-control" id="host">
+                                    {% for u in minions_up %}
+                                        <option value="{{ u }}">{{ u }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4 col-md-4">
                             <label class="pull-right">SVN地址：</label>
                         </div>
                         <div class="col-sm-8 col-md-8">
@@ -223,7 +246,7 @@
                         <div class="col-sm-4 col-md-4">
                             <label class="pull-right">SVN账号：</label>
                         </div>
-                        <div class="col-sm-4 col-md-4">
+                        <div class="col-sm-6 col-md-6">
                             <input type="text" class="form-control" placeholder="svn username" id="username">
                         </div>
                     </div>
@@ -232,7 +255,7 @@
                         <div class="col-sm-4 col-md-4">
                             <label class="pull-right">SVN密码：</label>
                         </div>
-                        <div class="col-sm-4 col-md-4 ">
+                        <div class="col-sm-6 col-md-6 ">
                             <input type="password" class="form-control" placeholder="svn password" id="password">
                         </div>
                     </div>
@@ -241,7 +264,7 @@
                         <div class="col-sm-4 col-md-4">
                             <label class="pull-right">目标目录：</label>
                         </div>
-                        <div class="col-sm-4 col-md-4">
+                        <div class="col-sm-6 col-md-6">
                             <input type="text" class="form-control" placeholder="/srv/salt" id="dir"
                             onkeypress="if(event.keyCode==13) {checkout.click();return false;}">
                         </div>
@@ -318,14 +341,14 @@
             });
 
             $('#checkout').click(function(){
-                var tgt = $('#tgt').val();
+                var tgt = $('#host').val();
                 var url = $('#url').val();
                 var username = $('#username').val();
                 var password = $('#password').val();
                 var path = $('#dir').val();
                 if( !url || !username || !password || !path ){alert("输入框不能为空！")}
                 else{
-                    $.getJSON("{% url 'salt:deploy' %}", {tgt:tgt,url:url,username:username,password:password,path:path,server:{{salt_server.id}}}, function (result) {
+                    $.getJSON("{% url 'salt:deploy' salt_server.id %}", {tgt:tgt,url:url,username:username,password:password,path:path}, function (result) {
                         alert(result['msg']);
                         if(result['ret']==1){
                             location.reload(true);
@@ -335,8 +358,9 @@
             });
         });
 
-    function svn(active,dir){
-        $.getJSON("{% url 'salt:deploy' %}", {active:active,dir:dir}, function (result) {
+    function svn(active,path){
+        var tgt = $('#tgt').val();
+        $.getJSON("{% url 'salt:deploy' salt_server.id %}", {active:active,path:path,tgt:tgt,url:'{{svn.URL}}'}, function (result) {
             alert(result['msg']);
             if(result['ret']==1){
                 location.reload(true);

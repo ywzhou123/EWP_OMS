@@ -321,6 +321,77 @@ def config(request,server_id):
     else:
         return render(request,'SALT/config.html',context)
 
+#SVN项目代码发布
+@login_required
+def deploy(request,server_id):
+    server_list=SaltServer.objects.all()
+    try:
+        salt_server = SaltServer.objects.get(id=server_id)
+    except:#id不存在时返回第一个
+        salt_server = SaltServer.objects.all()[0]
+    project_list=SvnProject.objects.filter(salt_server=salt_server).order_by('host')
+    context={'server_list':server_list,'salt_server':salt_server,'project_list':project_list}
 
+    try:
+        sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+        result=sapi.SaltRun(client='runner',fun='manage.status')
+        context['minions_up']=result['return'][0]['up']
+    except Exception as error:
+        context['error']=error
+    #针对SVN功能按钮
+    if request.is_ajax() and request.method == 'GET':
+        path=request.GET.get('path').encode("utf-8")
+        tgt=request.GET.get('tgt')
+        url=request.GET.get('url')
+        username=request.GET.get('username')
+        password=request.GET.get('password')
+        active=request.GET.get('active')
+
+        if tgt and path:
+            try:
+                projects=SvnProject.objects.filter(host=tgt)
+                project=None
+                for p in projects:
+                    if path.startswith(p.path):
+                        project=p
+
+                salt_server = SaltServer.objects.get(id=server_id)
+                sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+                #签出
+                if url and username and password:
+
+
+                    if project:
+                        project.info=1
+                        project.status=u"已发布"
+                        project.save()
+                        result = {'ret':0,'msg':u"此项目路径或其父路径已存在于'%s'，状态为'%s'"%(project,project.status)}
+                    else:
+                        r=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.checkout',arg=path,arg1='remote=%s'%url,arg2='username=%s'%username,arg3='password=%s'%password)['return'][0][tgt]
+                        result = {'ret':1,'msg':r}
+                        svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=path)['return'][0][tgt][0]
+                        SvnProject.objects.get_or_create(salt_server=salt_server,host=tgt,path=path,url=url,username=username,password=password,status=u"已发布",info=svn_info)
+                #提交
+                elif active=='commit'and project:
+                    r=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.commit',arg=path,arg1='msg=commit from %s'%tgt,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
+                    result = {'ret':0,'msg':r}
+                #更新（先提交否则会冲突）
+                elif active=='update' and project:
+                    r1=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.commit',arg=path,arg1='msg=commit from %s'%tgt,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
+                    r2=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.update',arg=path,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
+                    result = {'ret':1,'msg':r1+r2}
+                #SvnProject里没有记录时自动创建，但密码需要在后台设置
+                elif  not project:
+                    svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=path,arg1='fmt=dict')['return'][0][tgt][0]
+                    if isinstance(svn_info,dict):
+                        SvnProject.objects.get_or_create(host=tgt,path=path,url=svn_info['URL'],username=svn_info["Last Changed Author"],password='enter your password',status=u"请设置密码")
+                        result = {'ret':0,'msg':u'SVN项目不存在，现已新建，请在后台页面设置SVN密码！'}
+                    else:
+                        result = {'ret':0,'msg':u'错误：%s'%svn_info}
+            except Exception as e:
+                result = {'ret':0,'msg':u'错误：%s' % e}
+            return JsonResponse(result,safe=False)
+
+    return render(request,'SALT/deploy.html',context)
 
 
