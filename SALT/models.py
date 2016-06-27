@@ -62,19 +62,34 @@ class Result(models.Model):
 
 class SvnProject(models.Model):
     name = models.CharField(max_length=50,blank=True,verbose_name=u'项目名称')
-    salt_server = models.ForeignKey(SaltServer,verbose_name=u'Salt服务器')
+    salt_server = models.ForeignKey(SaltServer,verbose_name=u'所属Salt服务器')
     host = models.CharField(max_length=50,verbose_name=u'项目主机')
     path = models.CharField(max_length=200,verbose_name=u'项目根路径')
     target = models.CharField(max_length=50,verbose_name=u'项目目录')
     url = models.CharField(max_length=200,verbose_name=u'SVN地址')
     username = models.CharField(max_length=40,verbose_name=u'SVN账号')
     password = models.CharField(max_length=40,blank=True,verbose_name=u'SVN密码')
-    status = models.CharField(max_length=40,default=u'新建',verbose_name=u'发布状态')
+    status = models.CharField(max_length=40,default=u'新建',verbose_name=u'状态')
     create_date=models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
-    info = models.TextField(max_length=500,blank=True,verbose_name=u'备注信息')
+    info = models.TextField(max_length=500,blank=True,verbose_name=u'信息')
     def __unicode__(self):
         return u"%s: %s - %s/%s"%(self.name,self.host,self.path,self.target)
     class Meta:
         verbose_name = u'SVN项目'
         verbose_name_plural = u'SVN项目列表'
         unique_together = ("host", "path", "target")
+
+
+class Minions(models.Model):
+    minion = models.CharField(max_length=50,verbose_name=u'客户端')
+    salt_server = models.ForeignKey(SaltServer,verbose_name=u'所属Salt服务器')
+    grains = models.TextField(max_length=500,blank=True,verbose_name=u'Grains信息')
+    pillar = models.TextField(max_length=500,blank=True,verbose_name=u'Pillar信息')
+    # status = models.BooleanField(default=False,verbose_name=u'在线状态')
+    # create_date=models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
+    def __unicode__(self):
+        return self.minion
+    class Meta:
+        verbose_name = u'Salt客户端'
+        verbose_name_plural = u'Salt客户端列表'
+        unique_together = ("minion", "salt_server")

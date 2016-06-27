@@ -325,7 +325,6 @@ def config(request,server_id):
 
     else:
         return render(request,'SALT/config.html',context)
-
 #SVN项目代码发布
 @login_required
 def deploy(request,server_id):
@@ -371,8 +370,8 @@ def deploy(request,server_id):
 
 
     return render(request,'SALT/deploy.html',context)
-
-
+#SVN项目提交和更新
+@login_required
 def deploy_svn(request,server_id):
     #SVN功能按钮
     if request.is_ajax() and request.method == 'GET':

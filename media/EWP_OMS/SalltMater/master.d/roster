@@ -1,0 +1,5 @@
+# salt-ssh '10.188.1.40' state.sls minions/install --user=root --passwd=abc@123
+10.188.1.40:
+  host: 10.188.1.40
+#  user: root
+#  passwd: abc@123
