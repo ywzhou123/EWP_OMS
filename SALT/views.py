@@ -342,102 +342,80 @@ def deploy(request,server_id):
         sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
         result=sapi.SaltRun(client='runner',fun='manage.status')
         context['minions_up']=result['return'][0]['up']
-
+        #刷新页面检测并更新项目状态
         for project in project_list:
             path=project.path+'/'+project.target
             svn_info=sapi.SaltCmd(client='local',tgt=project.host,fun='svn.info',arg=path,arg1='fmt=dict')['return'][0][project.host][0]
             if isinstance(svn_info,dict):
                 if project.url == svn_info['URL']:
-                    project(status=u"已发布",info=svn_info)
+                    project.status=u"已发布"
+                    project.info=u"最近修改时间：%s\n最近修改版本：%s\n最新版本：%s"%(svn_info["Last Changed Date"][0:20],svn_info["Last Changed Rev"],svn_info["Revision"])
                 else:
                     project.status=u"冲突"
-                    project.info=u"SVN路径不匹配：本地SVN为'%s'，项目SVN为'%s'"%(svn_info['URL'],project.url)
-                project.save()
+                    project.info=u"SVN路径不匹配：\n本地SVN为'%s'\n项目SVN为'%s'"%(svn_info['URL'],project.url)
+                # project.save()
             else:
                 #根路径不存在时创建
                 if not sapi.SaltCmd(client='local',tgt=project.host,fun='file.directory_exists',arg=project.path)['return'][0][project.host]:
                     sapi.SaltCmd(client='local',tgt=project.host,fun='file.mkdir',arg=project.path)
                 #目录未被版本控制，可能SVN未安装
-                if  not sapi.SaltCmd(client='local',tgt=project.host,fun='pkg.version',arg='subversion')['return'][0][project.host]:
+                if not sapi.SaltCmd(client='local',tgt=project.host,fun='pkg.version',arg='subversion')['return'][0][project.host]:
                     sapi.SaltCmd(client='local',tgt=project.host,fun='pkg.install',arg='subversion')
-                sapi.SaltCmd(client='local',tgt=project.host,fun='svn.checkout',arg=project.path,arg0='targets=%s'%project.target,arg1='remote=%s'%project.url,arg2='username=%s'%project.username,arg3='password=%s'%project.password)
+                #签出项目、获取信息并存入库
+                sapi.SaltCmd(client='local',tgt=project.host,fun='svn.checkout',arg=project.path,arg0='target=%s'%project.target,arg1='remote=%s'%project.url,arg2='username=%s'%project.username,arg3='password=%s'%project.password)
+                project.info=sapi.SaltCmd(client='local',tgt=project.host,fun='svn.info',arg=path,arg1='fmt=dict')['return'][0][project.host][0]
+                project.status=u"已发布"
+            project.save()
     except Exception as error:
         context['error']=error
-
-
-
-    #针对SVN功能按钮
-    if request.is_ajax() and request.method == 'GET':
-        tgt=request.GET.get('tgt')
-        path=request.GET.get('path').encode("utf-8")
-        target=request.GET.get('target')
-        url=request.GET.get('url')
-        username=request.GET.get('username')
-        password=request.GET.get('password')
-        active=request.GET.get('active')
-
-        if tgt and path:
-            try:
-                # projects=SvnProject.objects.filter(host=tgt)
-                # project=None
-                # for p in projects:
-                #     if path.startswith(p.path):
-                #         project=p
-
-                #签出
-                if url and username and password:
-                    if project:
-                        project.info=1
-                        project.status=u"已发布"
-                        project.save()
-                        result = {'ret':0,'msg':u"此项目路径或其父路径已存在于'%s'，状态为'%s'"%(project,project.status)}
-                    else:
-                        r=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.checkout',arg=path,arg1='remote=%s'%url,arg2='username=%s'%username,arg3='password=%s'%password)['return'][0][tgt]
-                        result = {'ret':1,'msg':r}
-                        svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=path)['return'][0][tgt][0]
-                        SvnProject.objects.get_or_create(salt_server=salt_server,host=tgt,path=path,url=url,username=username,password=password,status=u"已发布",info=svn_info)
-
-                    project=SvnProject.objects.get(tgt=tgt,path=path,target=target)
-                    path=project.path+'/'+project.target
-                    svn_info=sapi.SaltCmd(client='local',tgt=project.host,fun='svn.info',arg=path,arg1='fmt=dict')['return'][0][project.host][0]
-                    if isinstance(svn_info,dict):
-                        if project.url == svn_info['URL']:
-                            project(status=u"已发布",info=svn_info)
-                        else:
-                            project.status=u"冲突"
-                            project.info=u"SVN路径不匹配：本地SVN为'%s'，项目SVN为'%s'"%(svn_info['URL'],project.url)
-                        project.save()
-                    else:
-                        #根路径不存在时创建
-                        if not sapi.SaltCmd(client='local',tgt=project.host,fun='file.directory_exists',arg=project.path)['return'][0][project.host]:
-                            sapi.SaltCmd(client='local',tgt=project.host,fun='file.mkdir',arg=project.path)
-                        #目录未被版本控制，可能SVN未安装
-                        if  not sapi.SaltCmd(client='local',tgt=project.host,fun='pkg.version',arg='subversion')['return'][0][project.host]:
-                            sapi.SaltCmd(client='local',tgt=project.host,fun='pkg.install',arg='subversion')
-                        sapi.SaltCmd(client='local',tgt=project.host,fun='svn.checkout',arg=project.path,arg0='targets=%s'%project.target,arg1='remote=%s'%project.url,arg2='username=%s'%project.username,arg3='password=%s'%project.password)
-
-                #提交
-                elif active=='commit'and project:
-                    r=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.commit',arg=path,arg1='msg=commit from %s'%tgt,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
-                    result = {'ret':0,'msg':r}
-                #更新（先提交否则会冲突）
-                elif active=='update' and project:
-                    r1=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.commit',arg=path,arg1='msg=commit from %s'%tgt,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
-                    r2=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.update',arg=path,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
-                    result = {'ret':1,'msg':r1+r2}
-                #SvnProject里没有记录时自动创建，但密码需要在后台设置
-                elif  not project:
-                    svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=path,arg1='fmt=dict')['return'][0][tgt][0]
-                    if isinstance(svn_info,dict):
-                        SvnProject.objects.get_or_create(host=tgt,path=path,url=svn_info['URL'],username=svn_info["Last Changed Author"],password='enter your password',status=u"请设置密码")
-                        result = {'ret':0,'msg':u'SVN项目不存在，现已新建，请在后台页面设置SVN密码！'}
-                    else:
-                        result = {'ret':0,'msg':u'错误：%s'%svn_info}
-            except Exception as e:
-                result = {'ret':0,'msg':u'错误：%s' % e}
-            return JsonResponse(result,safe=False)
 
 
     return render(request,'SALT/deploy.html',context)
 
 
+def deploy_svn(request,server_id):
+    #SVN功能按钮
+    if request.is_ajax() and request.method == 'GET':
+        tgt=request.GET.get('tgt','')
+        path=request.GET.get('path','').encode("utf-8")
+        active=request.GET.get('active','')
+        project_id=request.GET.get('project_id','')
+
+        try:
+            salt_server = SaltServer.objects.get(id=server_id)
+            sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+            if project_id:
+                project=SvnProject.objects.get(id=project_id)#指定项目
+                path=project.path+'/'+project.target
+                tgt=project.host
+            else:
+                project=None                                #项目不存在
+                projects=SvnProject.objects.filter(host=tgt)
+                for p in projects:
+                    if path.startswith(p.path+'/'+p.target): #项目子目录
+                        project=p
+            #SvnProject里没有记录时自动创建，但密码需要在后台设置
+            if not project:
+                svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=path,arg1='fmt=dict')['return'][0][tgt][0]
+                if isinstance(svn_info,dict):
+                    result = {'ret':False,'msg':u'SVN项目不存在，请在后台页面添加！','add':True}
+                else:
+                    result = {'ret':False,'msg':u'错误：%s'%svn_info}
+            #提交
+            elif active=='commit' or active=='update':
+                status=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.status',arg=path)['return'][0][tgt]
+                for s in status.split('\n'):
+                    l=s.split(' ')
+                    if l[0]=='?':
+                        sapi.SaltCmd(client='local',tgt=tgt,fun='svn.add',arg=path,arg0=path+'/'+l[-1],arg2='username=%s'%project.username,arg3='password=%s'%project.password)
+                    elif l[0]=='!':
+                        sapi.SaltCmd(client='local',tgt=tgt,fun='svn.remove',arg=path,arg0=path+'/'+l[-1],arg2='username=%s'%project.username,arg3='password=%s'%project.password)
+                ci=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.commit',arg=path,arg1='msg=commit from %s'%tgt,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
+                result = {'ret':True,'msg':u"提交成功！\n%s"%ci}
+                #更新（先提交否则会冲突）
+                if active=='update':
+                    up=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.update',arg=path,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
+                    result = {'ret':True,'msg':u"提交成功！\n%s\n更新成功！\n%s"%(ci,up)}
+        except Exception as e:
+            result = {'ret':False,'msg':u'错误：%s' % e}
+        return JsonResponse(result,safe=False)

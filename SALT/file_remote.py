@@ -48,7 +48,7 @@ def file_remote(request,server_id):
                         dir=path
                     svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=dir,arg1='fmt=dict')['return'][0][tgt][0]
                     if isinstance(svn_info,dict):
-                        context['svn']={'URL':svn_info['URL'],'Revision':svn_info['Revision'],'LastChangeDate':svn_info["Last Changed Date"][0:20]}
+                        context['svn']={'URL':svn_info['URL'],'Revision':svn_info['Revision'],'LastChangedRev':svn_info['Last Changed Rev'],'LastChangeDate':svn_info["Last Changed Date"][0:20]}
                 #文件存在时，返回文件内容，加上文件格式、大小限制
                 elif sapi.SaltCmd(client='local',tgt=tgt,fun='file.file_exists',arg=path)['return'][0][tgt]:
                     if os.path.splitext(path)[1] in FILE_FORMAT:
@@ -68,7 +68,7 @@ def file_remote(request,server_id):
                         dir='/'
                     svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=dir,arg1='fmt=dict',arg2='targets=%s'%path_str[-1])['return'][0][tgt][0]
                     if isinstance(svn_info,dict):
-                        context['svn']={'URL':svn_info['URL'],'Revision':svn_info['Revision'],'LastChangeDate':svn_info["Last Changed Date"][0:20]}
+                        context['svn']={'URL':svn_info['URL'],'Revision':svn_info['Revision'],'LastChangedRev':svn_info['Last Changed Rev'],'LastChangeDate':svn_info["Last Changed Date"][0:20]}
                 else:
                     context['error']=u"目标不存在或者不是目录或文件！"
 

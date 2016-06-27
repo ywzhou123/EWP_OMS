@@ -73,7 +73,8 @@ class SvnProject(models.Model):
     create_date=models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
     info = models.TextField(max_length=500,blank=True,verbose_name=u'备注信息')
     def __unicode__(self):
-        return u"%s: %s - %s"%(self.name,self.host,self.path)
+        return u"%s: %s - %s/%s"%(self.name,self.host,self.path,self.target)
     class Meta:
         verbose_name = u'SVN项目'
         verbose_name_plural = u'SVN项目列表'
+        unique_together = ("host", "path", "target")

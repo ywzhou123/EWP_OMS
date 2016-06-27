@@ -29,6 +29,7 @@ urlpatterns = [
     url(r'^file_remote_write/$', file_remote_write, name='file_remote_write'),
     url(r'^file_remote_delete/$', file_remote_delete, name='file_remote_delete'),
     url(r'^deploy/(?P<server_id>[0-9]+)/$', deploy, name='deploy'),
+    url(r'^deploy_svn/(?P<server_id>[0-9]+)/$', deploy_svn, name='deploy_svn'),
 
 
     # url(r'^file_download/(?P<file_name>.*)/$', file_download, name='file_download'),

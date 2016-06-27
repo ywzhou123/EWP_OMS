@@ -9,9 +9,9 @@
             代码发布
             <small class="text-danger">{{ salt_server.idc.name }} -- {{ salt_server.url }} -- {{ salt_server.role }}</small>
             <div class="btn-group pull-right">
+                <a class="btn btn-info" href="/admin/SALT/svnproject/add/" target="_blank" title="新建"><span class="glyphicon glyphicon-plus"></span></a>
 {#            Server选择#}
-{#                <label for="server" disabled="disabled"></label>#}
-                <div class="btn-group dropdown">
+                <div class="btn-group pull-right dropdown">
                     <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                         &nbsp;SaltServer&nbsp;<span class="caret"></span></a>
                     <ul class="dropdown-menu">
@@ -20,17 +20,7 @@
                         {% endfor %}
                     </ul>
                 </div>
-                <a class="btn btn-info" href="/admin/SALT/svnproject/add/" target="_blank" title="新建"><span class="glyphicon glyphicon-plus"></span></a>
-                <button class="btn btn-info" type="button" title="检出" data-toggle="modal" data-target="#modal_checkout" ><span class="glyphicon glyphicon-export"></span></button>
             </div>
-{#                SVN操作功能#}
-{#            <div class="btn-group pull-right">#}
-{#                <button class="btn btn-info" type="button" title="提交" onclick="svn('commit','{{ dir }}')" ><span class="glyphicon glyphicon-send"></span></button>#}
-{#                <button class="btn btn-info" type="button" title="更新" onclick="svn('update','{{ dir }}')" ><span class="glyphicon glyphicon-refresh"></span></button>#}
-{#                <button class="btn btn-info" type="button" title="还原" onclick="svn('revert','{{ dir }}')" {% if not svn %} disabled="disabled" {% endif %}><span class="glyphicon glyphicon-repeat"></span></button>#}
-{#                <button class="btn btn-info" type="button" title="检出" data-toggle="modal" data-target="#modal_checkout" ><span class="glyphicon glyphicon-export"></span></button>#}
-{#                &nbsp;&nbsp;#}
-{#            </div>#}
         </h2>
         {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
         {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
@@ -47,7 +37,7 @@
                                 <th>本地地址</th>
                                 <th>SVN账号</th>
                                 <th>创建日期</th>
-                                <th>备注信息</th>
+                                <th>相关信息</th>
                                 <th>状态</th>
                                 <th>操作</th>
                             </tr>
@@ -57,18 +47,18 @@
                                 <tr>
                                     <td>{{ project.name }}</td>
                                     <td>{{ project.host }}</td>
-                                    <td><a href="{{ project.url }}" target="_blank" title="{{ project.url }}">{{ project.path }}</a></td>
+                                    <td><a href="{{ project.url }}" target="_blank" title="{{ project.url }}">{{ project.path }}/{{ project.target }}</a></td>
                                     <td>{{ project.username }}</td>
                                     <td>{{ project.create_date }}</td>
-                                    <td>{{ project.info }}</td>
+                                    <td>{{ project.info|linebreaks }}</td>
                                     <td>{% if project.status == "新建" %}<a href="{% url 'salt:deploy' salt_server.id %}?project_id={{ project.id }}">{{ project.status }}</a>{% else %}{{ project.status }}{% endif %}</td>
                                     <td>
                                         <div class="btn-group">
                                             <a class="btn btn-info btn-xs" href="/admin/SALT/svnproject/{{ project.id }}/" target="_blank">
                                                 <span class="glyphicon glyphicon-edit">&nbsp;修改</span></a>
-                                            <button class="btn btn-info  btn-xs" type="button" onclick="svn('commit','{{ project.path }}')" >
+                                            <button class="btn btn-info btn-xs" type="button" onclick="svn('commit','{{ project.id }}')" >
                                                 <span class="glyphicon glyphicon-send">&nbsp;提交</span></button>
-                                            <button class="btn btn-info btn-xs" type="button" onclick="svn('update','{{ project.path }}')" >
+                                            <button class="btn btn-info btn-xs" type="button" onclick="svn('update','{{ project.id }}')" >
                                                 <span class="glyphicon glyphicon-refresh">&nbsp;更新</span></button>
                                         </div>
                                     </td>
@@ -81,103 +71,14 @@
         </div>
     </div>
 
-{#   签出模态框#}
-    <div class="modal fade" id="modal_checkout" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h2 class="modal-title text-center">SVN签出目录</h2>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-sm-4 col-md-4">
-                            <label class="pull-right" for="host">目标主机：</label>
-                        </div>
-                        <div class="col-sm-6 col-md-6">
-                            <div class="form-group">
-                                <select class="form-control" id="host">
-                                    {% for u in minions_up %}
-                                        <option value="{{ u }}">{{ u }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-4 col-md-4">
-                            <label class="pull-right">SVN地址：</label>
-                        </div>
-                        <div class="col-sm-8 col-md-8">
-                            <input type="text" class="form-control" placeholder="http://svn_server:port/svn/..." id="url">
-                        </div>
-                    </div>
-                    <br>
-                    <div class="row">
-                        <div class="col-sm-4 col-md-4">
-                            <label class="pull-right">SVN账号：</label>
-                        </div>
-                        <div class="col-sm-6 col-md-6">
-                            <input type="text" class="form-control" placeholder="svn username" id="username">
-                        </div>
-                    </div>
-                    <br>
-                    <div class="row">
-                        <div class="col-sm-4 col-md-4">
-                            <label class="pull-right">SVN密码：</label>
-                        </div>
-                        <div class="col-sm-6 col-md-6 ">
-                            <input type="password" class="form-control" placeholder="svn password" id="password">
-                        </div>
-                    </div>
-                    <br>
-                    <div class="row">
-                        <div class="col-sm-4 col-md-4">
-                            <label class="pull-right">目标目录：</label>
-                        </div>
-                        <div class="col-sm-6 col-md-6">
-                            <input type="text" class="form-control" placeholder="/srv/salt" id="dir"
-                            onkeypress="if(event.keyCode==13) {checkout.click();return false;}">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-primary"  id="checkout">签出</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                    </div>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
 {% endblock %}
 {% block scripts %}
     <script>
-        $(document).ready(function(){
-            $('#checkout').click(function(){
-                var tgt = $('#host').val();
-                var url = $('#url').val();
-                var username = $('#username').val();
-                var password = $('#password').val();
-                var path = $('#dir').val();
-                if( !url || !username || !password || !path ){alert("输入框不能为空！")}
-                else{
-                    $.getJSON("{% url 'salt:deploy' salt_server.id %}", {tgt:tgt,url:url,username:username,password:password,path:path}, function (result) {
-                        alert(result['msg']);
-                        if(result['ret']==1){
-                            location.reload(true);
-                        }
-                    });
-                }
-            });
-        });
-
-        function svn(active,path){
-            var tgt = $('#tgt').val();
-            $.getJSON("{% url 'salt:deploy' salt_server.id %}", {active:active,path:path,tgt:tgt,url:'{{svn.URL}}'}, function (result) {
+        function svn(active,project_id){
+            $.getJSON("{% url 'salt:deploy_svn' salt_server.id %}", {active:active,project_id:project_id}, function (result) {
                 alert(result['msg']);
-                if(result['ret']==1){
-                    location.reload(true);
+                if(result['add']){
+                    window.open("/admin/SALT/svnproject/add/");
                 }
             });
         }
