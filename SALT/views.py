@@ -14,7 +14,7 @@ import json
 from django.forms.models import model_to_dict
 import re
 
-#获取命令
+#命令管理
 @login_required
 def command(request):
     module_id = request.GET.get('module_id')
@@ -80,12 +80,109 @@ def command(request):
     context['cmd_list']=cmd_list
     context['module_list']=module_list
     return render(request, 'SALT/command.html', context)
-
-#接口列表
+#接口管理
 @login_required
 def server(request):
     server_list=SaltServer.objects.order_by('idc')
     return render(request, 'SALT/server.html', locals())
+#客户端管理（KEY）
+@login_required
+def minions(request,server_id):
+    server_list=SaltServer.objects.all()
+    try:
+        salt_server = SaltServer.objects.get(id=server_id)
+    except:#id不存在时返回第一个
+        salt_server = SaltServer.objects.all()[0]
+    context={'server_list':server_list,'salt_server':salt_server}
+
+    try:
+        sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+        #对所有key刷新minions表数据
+        a,d,u,r=sapi.ListKey()
+        if a:
+            for m in a:
+                collect(salt_server.id,m,'Accepted')
+        if d:
+            for m in d:
+                collect(salt_server.id,m,'Denied')
+        if u:
+            for m in u:
+                collect(salt_server.id,m,'Unaccepted')
+        if r:
+            for m in r:
+                collect(salt_server.id,m,'Rejected')
+        #minion不存在对应的key时设为未知
+        keys=[]
+        for s in [a,d,u,r]:
+            for m in s:
+                keys.append(m)
+        minion_list=Minions.objects.filter(salt_server=salt_server)
+        ms=[]
+        for m in minion_list:
+            if m.minion not in keys:
+                m.status='Unknown'
+                m.save()
+            grains=json.loads(m.grains)
+            grains['ipv4'].remove('127.0.0.1')
+            obj={'id':m.id,'minion':m.minion,'ip':grains['ipv4'],'os':grains['os'],'status':m.status}
+            ms.append(obj)
+        context['minion_list']=ms
+    except Exception as error:
+        context['error']=error
+    return render(request,'SALT/minions.html',context)
+#客户端KEY接收、删除、显示信息
+@login_required
+def minions_fun(request):
+    id=request.GET.get('id','')
+    active=request.GET.get('active','')
+    if request.is_ajax() and id and active:
+        try:
+            minion=Minions.objects.get(id=id)
+            salt_server = SaltServer.objects.get(id=minion.salt_server.id)
+            sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+            if id:
+                if active == 'delete':
+                    success=sapi.DeleteKey(minion)
+                    if success:
+                        minion.status='Unknown'
+                        minion.save()
+                        result=u'KEY"%s"删除成功！'%minion.minion
+                    else:
+                        result=u'KEY"%s"删除失败！'%minion.minion
+                elif active == 'accept':
+                    success=sapi.AcceptKey(minion)
+                    if success:
+                        collect(salt_server.id,minion.minion,'Accepted')
+                        result=u'KEY"%s"接受成功！'%minion.minion
+                    else:
+                        result=u'KEY"%s"接受失败！'%minion.minion
+                elif active == 'grains':
+                    result=json.loads(minion.grains)
+                elif active == 'pillar':
+                    result=json.loads(minion.pillar)
+        except Exception as e:
+            result=str(e)
+        return JsonResponse(result,safe=False)
+#客户端信息收集
+@login_required
+def collect(server_id, minion ,status='Unknown'):
+    try:
+        salt_server = SaltServer.objects.get(id=server_id)
+        sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+        Minions.objects.get_or_create(minion=minion,salt_server=salt_server)
+        Minion=Minions.objects.get(minion=minion,salt_server=salt_server)
+
+        if status=='Accepted':
+            grains=sapi.SaltMinions(minion)['return'][0][minion]
+            pillar=sapi.SaltCmd(tgt=minion,fun='pillar.items',client='local')['return'][0][minion]
+            Minion.grains=json.dumps(grains)
+            Minion.pillar=json.dumps(pillar)
+        Minion.status=status
+        Minion.save()
+        result=True
+    except Exception as error:
+        result=error
+    return  result
 #目标过滤
 @login_required
 def target(request):
@@ -138,7 +235,7 @@ def target(request):
             # print host_list
             host_list = [host.tgt_id for host in host_list]
             return JsonResponse(host_list,safe=False)
-#命令结果
+#执行结果
 @login_required
 def result(request):
     if request.is_ajax():
@@ -202,59 +299,7 @@ def jid_info(request):
             return JsonResponse(result,safe=False)
         except Exception as error:
             return JsonResponse({'error':error},safe=False)
-#认证KEY管理
-@login_required
-def keys(request):
-    idc_list = IDC.objects.order_by('name')
-    idc=request.GET.get('idc',idc_list[0].id)
-    key=request.GET.get('key','')
-    active=request.GET.get('active','')
-    context={'idc_list':idc_list,'idc':long(idc)}
-    try:
-        salt_server = SaltServer.objects.get(idc=idc,role='Master')
-        sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-        if key:
-            if active == 'del':
-                success=sapi.DeleteKey(key)
-                if success:
-                    context['success']=u'KEY"%s"删除成功！'%key
-                else:
-                    context['success']=u'KEY"%s"删除失败！'%key
-            if active == 'accept':
-                success=sapi.AcceptKey(key)
-                if success:
-                    context['success']=u'KEY"%s"接受成功！'%key
-                else:
-                    context['success']=u'KEY"%s"接受失败！'%key
-        minions,minions_pre=sapi.ListKey()
-        context['minions']=minions
-        context['minions_pre']=minions_pre
-    except Exception as error:
-        context['error']=error
-    print context
-    return render(request,'SALT/keys.html',context)
-@login_required
-def minions(request):
-    idc_list = IDC.objects.order_by('name')
-    idc=request.GET.get('idc',idc_list[0].id)
-    key=request.GET.get('key','')
-    active=request.GET.get('active','')
-    context={'idc_list':idc_list,'idc':long(idc)}
-    try:
-        salt_server = SaltServer.objects.get(ip__server__idc=idc,role='M')
-        sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-
-        minions=sapi.SaltRun(fun='manage.status')
-        print minions
-        context['minions_up']=minions['return'][0]['up']
-        context['minions_down']=minions['return'][0]['down']
-    except Exception as error:
-        context['minions_up']=[]
-        context['minions_down']=[]
-        context['error']=error
-    print context
-    return render(request,'SALT/minions.html',context)
-#命令执行页面
+#命令执行
 @login_required
 def execute(request):
     idc_list = IDC.objects.order_by('name')
@@ -325,7 +370,7 @@ def config(request,server_id):
 
     else:
         return render(request,'SALT/config.html',context)
-#SVN项目代码发布
+#代码发布
 @login_required
 def deploy(request,server_id):
     server_list=SaltServer.objects.all()
@@ -370,9 +415,9 @@ def deploy(request,server_id):
 
 
     return render(request,'SALT/deploy.html',context)
-#SVN项目提交和更新
+#SVN提交、更新
 @login_required
-def deploy_svn(request,server_id):
+def deploy_fun(request, server_id):
     #SVN功能按钮
     if request.is_ajax() and request.method == 'GET':
         tgt=request.GET.get('tgt','')

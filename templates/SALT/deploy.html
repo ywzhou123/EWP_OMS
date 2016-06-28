@@ -75,7 +75,7 @@
 {% block scripts %}
     <script>
         function svn(active,project_id){
-            $.getJSON("{% url 'salt:deploy_svn' salt_server.id %}", {active:active,project_id:project_id}, function (result) {
+            $.getJSON("{% url 'deploy_fun' salt_server.id %}", {active:active,project_id:project_id}, function (result) {
                 alert(result['msg']);
                 if(result['add']){
                     window.open("/admin/SALT/svnproject/add/");

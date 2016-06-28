@@ -1,43 +1,122 @@
 {% extends "AUTH/navbar.html" %}
 {% load staticfiles %}
+{% load pagination_tags %}
 {% block title %}
     <title>Minions管理</title>
+    <style>
+        textarea {
+            white-space: pre;
+            font-family: Courier, monospace;
+            width:100%;
+            height:450px;
+            background-color: black;
+            color: #ffffff;
+        }
+    </style>
 {% endblock %}
 {% block content %}
     <div class="container">
         <h2>
             Minions管理
-            <div class="btn-group pull-right">
-                <select class="form-control" id="idc">
-                    {% for i in idc_list %}
-                    <option value="{{ i.id }}" {% if i.id == idc %}selected="selected"{% endif %}>{{ i}}</option>
+            <small class="text-danger">{{ salt_server.idc.name }} -- {{ salt_server.url }} -- {{ salt_server.role }}</small>
+{#            Server选择#}
+            <div class="btn-group pull-right dropdown">
+                <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                    &nbsp;SaltServer&nbsp;<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    {% for s in server_list %}
+                        <li><a href="{% url 'salt:file_remote' s.id%}">{{ s.idc.name }} -- {{ s.url }}</a></li>
                     {% endfor %}
-                </select>
+                </ul>
             </div>
         </h2>
-    {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
-    {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
-
-        <h3>在线</h3>
+        {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
+        {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
         <div class="row">
-            {% for minion in minions_up%}
-                {{ minion }}
-            {% endfor %}
-        </div>
-        <h3>下线</h3>
-        <div class="row">
-            {% for minion in minions_down%}
-                {{ minion }}
-            {% endfor %}
+            <div class="col-sm-12 col-md-12 col-lg-12 text-center">
+                {% if minion_list %}
+                {% autopaginate minion_list 15 %}
+                {% endif %}
+                <div class="table-responsive" >
+                    <table class="table table-hover table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th class="text-center">Minion</th>
+                                <th class="text-center">IP地址</th>
+                                <th class="text-center">系统</th>
+                                <th class="text-center">状态</th>
+                                <th class="text-center">Grains</th>
+                                <th class="text-center">Pillar</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        {% for minion in minion_list %}
+                            <tbody>
+                                <tr>
+                                    <td>{{ minion.minion }}</td>
+                                    <td>{% for ip in minion.ip %}{{ ip }}&nbsp;{% endfor %}</td>
+                                    <td>{{ minion.os }}</td>
+                                    <td>{{ minion.status }}</td>
+                                    <td><a href="#" onclick="active('{{ minion.id }}','grains','{{ minion.minion }}')" data-toggle="modal" data-target="#result">
+                                        Grains</a></td>
+                                    <td><a href="#" onclick="active('{{ minion.id }}','pillar','{{ minion.minion }}')" data-toggle="modal" data-target="#result">
+                                        Pillar</a></td>
+                                    <td>
+                                        {% if minion.status == 'Accepted' %}
+                                            <button class="btn btn-danger btn-xs" onclick="active('{{ minion.id }}','delete','{{ minion.minion }}')" title="删除KEY">
+                                                <span class="glyphicon glyphicon-remove"></span></button>
+                                        {% elif minion.status == 'Unaccepted' %}
+                                            <a class="btn btn-success btn-xs" onclick="active('{{ minion.id }}','accept','{{ minion.minion }}')" title="接受KEY">
+                                                <span class="glyphicon glyphicon-ok"></span></a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        {% endfor %}
+                    </table>
+                </div>
+                {% paginate %}
+            </div>
         </div>
     </div>
 
+<div class="modal fade" id="result" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4><code id="minion"></code>的<code id="target"></code>详细信息
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <label for="result_data" class="sr-only"></label>
+                <textarea id="result_data"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
+
 {% block scripts %}
+    <script src="{% static 'salt/js/formatJSON.js' %}"></script>
     <script>
-    $('#idc').change(function(){
-        var idc=$(this).val();
-        window.location.href='{% url 'salt:minions' %}?idc='+idc;
-    });
+    function active(id,active,minion){
+        $('#minion').html(minion);
+        $('#target').html(active);
+        if (active == 'grains' || active == 'pillar')
+        {
+            $.getJSON("{% url 'salt:minions_fun' %}",{id:id,active:active},function(result) {
+                var rv = document.getElementById('result_data');
+                rv.value = formatJson(result, true);
+            });
+        }
+        else if(active == 'delete'){
+            if(confirm("是否删除KEY'"+minion+"'?")){
+                $.getJSON("{% url 'salt:minions_fun' %}",{id:id,active:active},function(result){
+                    alert(result)
+                })
+            }
+        }
+    }
     </script>
 {% endblock %}

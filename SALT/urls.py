@@ -9,8 +9,8 @@ urlpatterns = [
     url(r'^target/$', target, name='target'),
     url(r'^command/$', command, name='command'),
     url(r'^server/$', server, name='server'),
-    url(r'^keys/$', keys, name='keys'),
-    url(r'^minions/$', minions, name='minions'),
+    url(r'^minions/(?P<server_id>[0-9]+)/$', minions, name='minions'),
+    url(r'^minions_fun/$', minions_fun, name='minions_fun'),
     url(r'^execute/$', execute, name='execute'),
     url(r'^result/$', result, name='result'),
     # url(r'^cmd_result_detail/(?P<result_id>[0-9]+)/$', cmd_result_detail, name='cmd_result_detail'),
@@ -29,7 +29,7 @@ urlpatterns = [
     url(r'^file_remote_write/$', file_remote_write, name='file_remote_write'),
     url(r'^file_remote_delete/$', file_remote_delete, name='file_remote_delete'),
     url(r'^deploy/(?P<server_id>[0-9]+)/$', deploy, name='deploy'),
-    url(r'^deploy_svn/(?P<server_id>[0-9]+)/$', deploy_svn, name='deploy_svn'),
+    url(r'^deploy_fun/(?P<server_id>[0-9]+)/$', deploy_fun, name='deploy_fun'),
 
 
     # url(r'^file_download/(?P<file_name>.*)/$', file_download, name='file_download'),

@@ -81,11 +81,18 @@ class SvnProject(models.Model):
 
 
 class Minions(models.Model):
+    Status = (
+    ('Unknown', 'Unknown'),
+    ('Accepted', 'Accepted'),
+    ('Denied', 'Denied'),
+    ('Unaccepted', 'Unaccepted'),
+    ('Rejected', 'Rejected'),
+    )
     minion = models.CharField(max_length=50,verbose_name=u'客户端')
     salt_server = models.ForeignKey(SaltServer,verbose_name=u'所属Salt服务器')
     grains = models.TextField(max_length=500,blank=True,verbose_name=u'Grains信息')
     pillar = models.TextField(max_length=500,blank=True,verbose_name=u'Pillar信息')
-    # status = models.BooleanField(default=False,verbose_name=u'在线状态')
+    status = models.CharField(choices=Status,max_length=20,default='Unknown',verbose_name=u'在线状态')
     # create_date=models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
     def __unicode__(self):
         return self.minion

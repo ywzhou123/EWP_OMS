@@ -108,9 +108,12 @@ class SaltAPI:
     def ListKey(self):
         prefix = '/keys'
         content = self.PostRequest(None,prefix)
-        minions = content['return']['minions']
-        minions_pre = content['return']['minions_pre']
-        return minions,minions_pre
+        accepted = content['return']['minions']
+        denied = content['return']['minions_denied']
+        unaccept = content['return']['minions_pre']
+        rejected = content['return']['minions_rejected']
+        return accepted,denied,unaccept,rejected
+
     #接受KEY
     def AcceptKey(self, key_id):
         params = {'client': 'wheel', 'fun': 'key.accept', 'match': key_id}
