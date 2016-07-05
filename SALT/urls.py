@@ -30,6 +30,8 @@ urlpatterns = [
     url(r'^file_remote_delete/$', file_remote_delete, name='file_remote_delete'),
     url(r'^deploy/(?P<server_id>[0-9]+)/$', deploy, name='deploy'),
     url(r'^deploy_fun/(?P<server_id>[0-9]+)/$', deploy_fun, name='deploy_fun'),
+    url(r'^state/(?P<server_id>[0-9]+)/$', state, name='state'),
+    url(r'^state_fun/(?P<server_id>[0-9]+)/$', state_fun, name='state_fun'),
 
 
     # url(r'^file_download/(?P<file_name>.*)/$', file_download, name='file_download'),

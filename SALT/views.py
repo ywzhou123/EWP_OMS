@@ -417,7 +417,8 @@ def deploy(request,server_id):
     return render(request,'SALT/deploy.html',context)
 #SVN提交、更新
 @login_required
-def deploy_fun(request, server_id):
+def deploy_fun(request,server_id):
+    print server_id
     #SVN功能按钮
     if request.is_ajax() and request.method == 'GET':
         tgt=request.GET.get('tgt','')
@@ -462,4 +463,54 @@ def deploy_fun(request, server_id):
                     result = {'ret':True,'msg':u"提交成功！\n%s\n更新成功！\n%s"%(ci,up)}
         except Exception as e:
             result = {'ret':False,'msg':u'错误：%s' % e}
+        return JsonResponse(result,safe=False)
+#应用部署
+@login_required
+def state(request,server_id):
+    server_list=SaltServer.objects.all()
+    try:
+        salt_server = SaltServer.objects.get(id=server_id)
+    except:#id不存在时返回第一个
+        salt_server = SaltServer.objects.all()[0]
+
+    minion_list=Minions.objects.filter(status="Accepted")
+    context={'server_list':server_list,'salt_server':salt_server,'minion_list':minion_list}
+
+    try:
+        sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+        context['envs']=sapi.SaltRun(client='runner',fun='fileserver.envs')['return'][0]
+    except Exception as error:
+        context['error']=error
+
+    return render(request,'SALT/state.html',context)
+
+@login_required
+def state_fun(request,server_id):
+    if request.is_ajax() and request.method == 'GET':
+        tgt=request.GET.get('tgt','')
+        env=request.GET.get('env','')
+        state=request.GET.get('state','')
+        states=[]
+        try:
+            salt_server = SaltServer.objects.get(id=server_id)
+            sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+            if env:
+                if state and tgt:
+                    arg=state.rstrip(',')
+                    result=sapi.SaltCmd(client='local',tgt=tgt,fun='state.sls',arg=arg,arg1='saltenv=%s'%env,expr_form='list')['return'][0]
+                else:
+                    roots=sapi.SaltRun(client='wheel',fun='file_roots.list_roots')['return'][0]['data']['return']
+                    dirs=roots[env][0]                #dirs={"/srv/salt/prod/":{}}
+                    for root,dirs in dirs.items():   #root="/srv/salt/prod/"  dirs={"init":{"epel.sls":"f",}}
+                        for dir,files in dirs.items():         #dir='init' or 'top.sls'    files={"epel.sls":"f",}
+                            if  dir == '.svn' :pass
+                            elif files == "f" and dir.endswith('.sls'):
+                                states.append(dir[0:-4])
+                            elif isinstance(files,dict):
+                                for sls,f in files.items():
+                                    if f=='f' and sls.endswith('.sls'):
+                                        states.append('%s.%s'%(dir,sls[0:-4]))
+                    result=sorted(states)
+        except Exception as e:
+            result = str(e)
         return JsonResponse(result,safe=False)

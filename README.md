@@ -86,8 +86,10 @@
               
 ![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/deploy.png)
 
->－应用部署（开发中）：本地文件管理页面进行sls模块编写、文件上传、提交，代码发布页面将SVN发布到master指定路径（/srv/salt），应用部署页面
-                        列出所有sls模块，批量选择主机进行安装并记录结果。
+>－应用部署：本地文件管理页面进行sls模块编写、文件上传、提交，代码发布页面将SVN发布到master指定路径（/srv/salt），应用部署页面
+动态获取SaltMaster的环境及其sls模块，批量选择主机通过state.sls进行安装并显示、记录结果；需要进一步细化，如增加test=true功能，增加pillar值输入，改为异步执行等。
+
+![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/state.png)
 
 ### 操作记录：
 
