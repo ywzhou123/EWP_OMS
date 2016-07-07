@@ -1,4 +1,4 @@
-{% extends "auth/base.html" %}
+{% extends "AUTH/base.html" %}
 {% load staticfiles %}
 {% block head %}
     <style>
@@ -69,6 +69,7 @@
                             <li><a href="#">操作日志</a></li>
                             <li><a href="{% url 'salt:result' %}">执行记录</a></li>
                             <li><a href="#">发布记录</a></li>
+                            <li><a href="{% url 'salt:state_history' %}">部署记录</a></li>
                         </ul>
                     </li>
                 </ul>

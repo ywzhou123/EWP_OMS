@@ -1,0 +1,90 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% load pagination_tags %}
+{% block title %}<title>应用部署记录</title>
+    <style>
+        textarea {
+            white-space: pre;
+            font-family: Courier, monospace;
+            width:100%;
+            height:450px;
+            background-color: black;
+            color: #ffffff;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>应用部署记录列表</h2>
+            <div class="table-responsive" >
+                <table class="table table-hover table-bordered  text-center">
+                    <thead>
+                        <tr>
+                            <th class="text-center">执行时间</th>
+{#                            <th class="text-center">任务号</th>#}
+                            <th class="text-center">方式</th>
+                            <th class="text-center">主机</th>
+                            <th class="text-center">功能</th>
+                            <th class="text-center">参数</th>
+                            <th class="text-center">类型</th>
+                        </tr>
+                    </thead>
+                        <tbody>
+
+                        {% autopaginate result_list 20 %}
+                        {% for result in result_list %}
+                            <tr class="{% if result.result and result.result != '{}' %}bg-success{% else %}bg-danger{% endif %}">
+                                <td>
+                                    <a href="#" onclick="result('{{ result.id }}')" data-toggle="modal" data-target="#result">
+                                    {{ result.datetime }}
+                                    </a>
+                                </td>
+{#                                <td>{{ result.jid }}</td>#}
+                                <td>{{ result.client }}</td>
+                                <td>{{ result.minions }}</td>
+                                <td>{{ result.fun }}</td>
+                                <td>{{ result.arg }}</td>
+                                <td>{{ result.tgt_type }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                </table>
+            </div>
+    {% paginate %}
+        <div class="modal fade" id="result" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header text-center">
+                        <h4>应用部署详细信息
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        </h4>
+                    </div>
+                    <div class="modal-body">
+                        <label for="result_data" class="sr-only"></label>
+                        <textarea id="result_data"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script src="{% static 'salt/js/formatJSON.js' %}"></script>
+    <script>
+    function result(id){
+        $.getJSON("{% url 'salt:state_history' %}",{id:id},function(result){
+            var rv=document.getElementById('result_data');
+            rv.value="";
+            for (var k in result) {
+                var v = result[k];
+                if (typeof v != 'object') {
+                    rv.value += "\n" + k + ":" + v;
+                }
+                else {
+                    rv.value += "\n" + k + ":" + formatJson(v, true);
+                }
+            }
+        })
+    }
+    </script>
+{% endblock %}

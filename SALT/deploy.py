@@ -141,6 +141,8 @@ def state_fun(request,server_id):
                 if state and tgt:
                     arg=state.rstrip(',')
                     result=sapi.SaltCmd(client='local',tgt=tgt,fun='state.sls',arg=arg,arg1='saltenv=%s'%env,expr_form='list')['return'][0]
+                    Res=State(client='local',minions=tgt,fun='state.sls',arg=arg,tgt_type='list',server=salt_server,user=request.user.username,result=json.dumps(result))
+                    Res.save()
                 else:
                     roots=sapi.SaltRun(client='wheel',fun='file_roots.list_roots')['return'][0]['data']['return']
                     dirs=roots[env][0]                #dirs={"/srv/salt/prod/":{}}
@@ -157,3 +159,17 @@ def state_fun(request,server_id):
         except Exception as e:
             result = str(e)
         return JsonResponse(result,safe=False)
+
+#部署记录
+@login_required
+def state_history(request):
+    if request.is_ajax() and request.method == 'GET':
+        id = request.GET.get('id')
+        if id:
+            r=State.objects.get(id=id)
+            result = json.loads(r.result) #result.html默认从数据库中读取
+            return JsonResponse(result,safe=False)
+    else:
+        result_list = State.objects.order_by('-id')
+
+    return render(request, 'SALT/state_history.html', locals())

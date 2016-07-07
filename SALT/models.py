@@ -100,3 +100,24 @@ class Minions(models.Model):
         verbose_name = u'Salt客户端'
         verbose_name_plural = u'Salt客户端列表'
         unique_together = ("minion", "salt_server")
+
+
+class State(models.Model):
+    #命令
+    client = models.CharField(max_length=20,blank=True,verbose_name=u'执行方式')
+    fun = models.CharField(max_length=50,verbose_name=u'命令')
+    arg = models.CharField(max_length=255,blank=True,verbose_name=u'参数')
+    tgt_type =  models.CharField(max_length=20,verbose_name=u'目标类型')
+    #返回
+    jid = models.CharField(blank=True,max_length=50,verbose_name=u'任务号')
+    minions = models.CharField(max_length=500,blank=True,verbose_name=u'目标主机')
+    result = models.TextField(blank=True,verbose_name=u'返回结果')
+    #其他信息
+    server = models.ForeignKey(SaltServer,verbose_name=u'所属Salt服务器')
+    user = models.CharField(max_length=50,verbose_name=u'操作用户')
+    datetime =models.DateTimeField(auto_now_add=True,verbose_name=u'执行时间')
+    def __unicode__(self):
+        return self.datetime
+    class Meta:
+        verbose_name = u'部署结果'
+        verbose_name_plural = u'部署结果'

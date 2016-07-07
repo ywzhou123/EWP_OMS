@@ -39,6 +39,7 @@ urlpatterns = [
     url(r'^deploy_fun/(?P<server_id>[0-9]+)/$', deploy_fun, name='deploy_fun'),
     url(r'^state/(?P<server_id>[0-9]+)/$', state, name='state'),
     url(r'^state_fun/(?P<server_id>[0-9]+)/$', state_fun, name='state_fun'),
+    url(r'^state_history/$', state_history, name='state_history'),
     #文件下载
     url(r'^media/(?P<path>.*)$','django.views.static.serve',{'document_root': settings.MEDIA_ROOT}),
     ]
