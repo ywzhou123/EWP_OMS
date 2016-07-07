@@ -42,11 +42,21 @@
 
 ### SALT配置管理：
 
->－认证管理：管理key的接受和删除，新增Minions表，用于存储minion(key)、grains、pillar等信息。
+>－命令管理：管理salt module 和 命令，通过'doc.runner','doc.wheel','doc.execution'命令自动采集模块、命令、及帮助信息；
+非内置模块需要手动添加，如svn
 
-![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/key.png)
+![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/command.png)
 
->－接口配置：SALT MASTER端RSET API接口信息，关联机房，多master时配置一个为master角色即可；新增配置管理，实时获取环境、配置等信息
+![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/help.png)
+
+>－Minion管理：管理key的接受和删除，新增Minions表，用于存储minion(key)、状态、grains、pillar等信息，CMDB中的数据可以根据IP来调取minion对象；
+还可以操作自定义grain、pillar等数据。
+
+![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/minions.png)
+
+![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/grains.png)
+
+>－接口配置：SALT MASTER端RSET API接口信息，关联机房；新增配置管理，实时获取环境、配置等信息。
 
 ![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/saltserver.png)
         

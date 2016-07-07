@@ -89,6 +89,7 @@ class SaltAPI:
         else:
             prefix = '/jobs'
         res = self.PostRequest(None,prefix)
+        # print res
         return res
     #获取grains
     def SaltMinions(self,minion=''):
@@ -113,7 +114,6 @@ class SaltAPI:
         unaccept = content['return']['minions_pre']
         rejected = content['return']['minions_rejected']
         return accepted,denied,unaccept,rejected
-
     #接受KEY
     def AcceptKey(self, key_id):
         params = {'client': 'wheel', 'fun': 'key.accept', 'match': key_id}

@@ -51,7 +51,7 @@
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                             <span class="glyphicon glyphicon-tasks"></span>&nbsp;运维管理<span class="caret"></span></a>
                         <ul class="dropdown-menu">
-                            <li><a href="{% url 'salt:execute' %}">执行命令</a></li>
+                            <li><a href="{% url 'salt:execute' 0 %}">执行命令</a></li>
                             <li><a href="{% url 'salt:file_local' %}">本地文件</a></li>
                             <li><a href="{% url 'salt:file_remote' 0 %}">远程文件</a></li>
                             <li><a href="{% url 'salt:deploy' 0%}">代码发布</a></li>

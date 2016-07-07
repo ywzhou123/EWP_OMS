@@ -25,7 +25,7 @@
                     &nbsp;SaltServer&nbsp;<span class="caret"></span></a>
                 <ul class="dropdown-menu">
                     {% for s in server_list %}
-                        <li><a href="{% url 'salt:file_remote' s.id%}">{{ s.idc.name }} -- {{ s.url }}</a></li>
+                        <li><a href="{% url 'salt:minions' s.id%}">{{ s.idc.name }} -- {{ s.url }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
@@ -56,7 +56,7 @@
                                     <td>{{ minion.minion }}</td>
                                     <td>{% for ip in minion.ip %}{{ ip }}&nbsp;{% endfor %}</td>
                                     <td>{{ minion.os }}</td>
-                                    <td>{{ minion.status }}</td>
+                                    <td class="{% if minion.status == 'Accepted' %}bg-success{% elif minion.status == 'Unaccepted' %}bg-danger{% elif minion.status == 'Unknown' %} bg-alert {% else %}bg-info{% endif %}">{{ minion.status }}</td>
                                     <td><a href="#" onclick="active('{{ minion.id }}','grains','{{ minion.minion }}')" data-toggle="modal" data-target="#result">
                                         Grains</a></td>
                                     <td><a href="#" onclick="active('{{ minion.id }}','pillar','{{ minion.minion }}')" data-toggle="modal" data-target="#result">

@@ -14,6 +14,7 @@ import json
 from django.forms.models import model_to_dict
 import re
 
+############################################### 基本配置
 #命令管理
 @login_required
 def command(request):
@@ -85,6 +86,59 @@ def command(request):
 def server(request):
     server_list=SaltServer.objects.order_by('idc')
     return render(request, 'SALT/server.html', locals())
+#Salt配置
+@login_required
+def config(request,server_id):
+    server_list=SaltServer.objects.all()
+    salt_server = SaltServer.objects.get(id=server_id)
+    context={'server_list':server_list,'salt_server':salt_server}
+    try:
+        sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+        # result=sapi.SaltRun(client='wheel',fun='config.values')
+        # configs=result['return'][0]['data']['return']
+        context['envs']=sorted(sapi.SaltRun(client='runner',fun='fileserver.envs')['return'][0])
+        # context['envs']=sorted(configs['file_roots'].keys())
+    except Exception as e:
+        context['error']=str(e)
+    return render(request,'SALT/config.html',context)
+
+@login_required
+def config_fun(request,server_id):
+    if request.is_ajax() and request.method=='GET':
+        env=request.GET.get('env')
+        file=request.GET.get('file')
+        content=request.GET.get('content')
+
+        try:
+            salt_server = SaltServer.objects.get(id=server_id)
+            sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+            result=sapi.SaltRun(client='wheel',fun='config.values')
+            configs=result['return'][0]['data']['return']
+
+            if env:
+                if file:
+                    if content:#写入文件内容，文件会产生[noeol]问题，因此需要在内容最后加个结束符\n
+                        r=sapi.SaltRun(client='wheel',fun='file_roots.write',path=file,data=content+'\n',saltenv=env)
+                        # r=sapi.SaltRun(client='wheel',fun='config.update_config',file_name='test',yaml_contents='{a:1}')
+                        success=r['return'][0]['data']['success']
+                        if success:
+                            result=u"文件%s保存成功！"%file
+                        else:
+                            result=u"文件%s保存失败！"%file
+                    else:#读取环境下文件内容
+                        path=configs['file_roots'][env][0]+file #每个环境最好只定义一个目录
+                        r=sapi.SaltRun(client='wheel',fun='file_roots.read',path=path,saltenv=env)
+                        result=r['return'][0]['data']['return']
+                        if isinstance(result,str):
+                            result={'Error':result}
+                        else:
+                            result=result[0]
+                else:#列出环境下的文件
+                    result=sapi.SaltRun(client='runner',fun='fileserver.file_list',saltenv=env)['return'][0] #.svn .git已在files.conf配置中过滤
+        except Exception as e:
+            result={'Error':str(e)}
+        return JsonResponse(result,safe=False)
+############################################### 客户端管理
 #客户端管理（KEY）
 @login_required
 def minions(request,server_id):
@@ -129,6 +183,7 @@ def minions(request,server_id):
         context['minion_list']=ms
     except Exception as error:
         context['error']=error
+        # print error
     return render(request,'SALT/minions.html',context)
 #客户端KEY接收、删除、显示信息
 @login_required
@@ -164,8 +219,7 @@ def minions_fun(request):
             result=str(e)
         return JsonResponse(result,safe=False)
 #客户端信息收集
-@login_required
-def collect(server_id, minion ,status='Unknown'):
+def collect(server_id,minion ,status='Unknown'):
     try:
         salt_server = SaltServer.objects.get(id=server_id)
         sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
@@ -180,105 +234,71 @@ def collect(server_id, minion ,status='Unknown'):
         Minion.status=status
         Minion.save()
         result=True
-    except Exception as error:
-        result=error
+    except Exception as e:
+        result=str(e)
     return  result
-#目标过滤
+################################################ 命令操作
+#命令执行
 @login_required
-def target(request):
-    if request.is_ajax():
-        if request.method == 'GET':
-            tgt=request.GET.get('tgt','')
-            idc_id=request.GET.get('idc_id','')
-            system_id = request.GET.get('system_id','')
-            group_id = request.GET.get('group_id','')
-            # print(idc_id,system_id,group_id,hostname)
-            host_list = HostDetail.objects.filter(salt_status=True).order_by('tgt_id')
-            if tgt:
-                if idc_id:
-                    if system_id:
-                        if group_id:
-                            host_list = host_list.filter(tgt_id__icontains=tgt,host__server__idc=idc_id,host__system_type=system_id,host__group=group_id)
-                        else:
-                            host_list = host_list.filter(tgt_id__icontains=tgt,host__server__idc=idc_id,host__system_type=system_id)
-                    elif group_id:
-                        host_list = host_list.filter(tgt_id__icontains=tgt,host__server__idc=idc_id,host__group=group_id)
-                    else:
-                        host_list = host_list.filter(tgt_id__icontains=tgt,host__server__idc=idc_id)
-                elif system_id:
-                     if group_id:
-                         host_list = host_list.filter(tgt_id__icontains=tgt,host__system_type=system_id,host__group=group_id)
-                     else:
-                         host_list = host_list.filter(tgt_id__icontains=tgt,host__system_type=system_id)
-                elif group_id:
-                    host_list = host_list.filter(tgt_id__icontains=tgt,host__group=group_id)
-                else:
-                    host_list = host_list.filter(tgt_id__icontains=tgt)
-            elif idc_id:
-                if system_id:
-                    if group_id:
-                        host_list = host_list.filter(host__server__idc=idc_id,host__system_type=system_id,host__group=group_id)
-                    else:
-                        host_list = host_list.filter(host__server__idc=idc_id,host__system_type=system_id)
-                elif group_id:
-                    host_list = host_list.filter(host__server__idc=idc_id,host__group=group_id)
-                else:
-                    host_list = host_list.filter(host__server__idc=idc_id)
-            elif system_id:
-                 if group_id:
-                     host_list = host_list.filter(host__system_type=system_id,host__group=group_id)
-                 else:
-                     host_list = host_list.filter(host__system_type=system_id)
-            elif group_id:
-                host_list = host_list.filter(host__group=group_id)
+def execute(request,server_id):
+    module_list=Module.objects.filter(client='execution').order_by('name')
+    server_list=SaltServer.objects.all()
+    try:
+        salt_server = SaltServer.objects.get(id=server_id)
+    except:#id不存在时返回第一个
+        salt_server = SaltServer.objects.all()[0]
+    minion_list=Minions.objects.filter(status='Accepted',salt_server=salt_server)
+    context={'server_list':server_list,'salt_server':salt_server,'module_list':module_list,'minion_list':minion_list}
 
-            # print host_list
-            host_list = [host.tgt_id for host in host_list]
-            return JsonResponse(host_list,safe=False)
+    # try:
+    #     sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+    #     result=sapi.SaltRun(client='runner',fun='manage.status')
+    #     context['minions_up']=result['return'][0]['up']
+    #     context['minions_down']=result['return'][0]['down']
+    # except Exception as error:
+    #     context['error']=error
+    return render(request,'SALT/execute.html',context)
+@login_required
+def execute_fun(request,server_id):
+    if request.is_ajax() and request.method == 'GET':
+        id = request.GET.get('id')
+        client = request.GET.get('client')
+        tgt_type = request.GET.get('tgt_type')
+        tgt  = request.GET.get('tgt','')
+        fun = request.GET.get('fun')
+        arg = request.GET.get('arg','')
+        user  = request.user.username
+        if id:
+            r=Result.objects.get(id=id)
+            result = json.loads(r.result) #result.html默认从数据库中读取
+        else:
+            try:
+                salt_server = SaltServer.objects.get(id=server_id)
+                sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+                if re.search('runner',client) or re.search('wheel',client):
+                    r=sapi.SaltRun(client=client,fun=fun,arg=arg)
+                else:
+                    r = sapi.SaltCmd(client=client,tgt=tgt,fun=fun,arg=arg,expr_form=tgt_type)
+                if re.search('async',client):
+                    jid = r['return'][0]['jid']
+                    result=jid #异步命令只返回JID，之后JS会调用jid_info
+                    # minions = ','.join(result['return'][0]['minions'])
+                    Res=Result(client=client,jid=jid,minions=tgt,fun=fun,arg=arg,tgt_type=tgt_type,server=salt_server,user=user)
+                    Res.save()
+                else:
+                    result=r['return'][0]#同步命令直接返回结果
+                    Res=Result(client=client,minions=tgt,fun=fun,arg=arg,tgt_type=tgt_type,server=salt_server,user=user,result=json.dumps(result))
+                    Res.save()
+                # res=model_to_dict(r,exclude='result')
+            except Exception as e:
+                result={'Error': str(e)}
+
+        return JsonResponse(result,safe=False)
 #执行结果
 @login_required
 def result(request):
-    if request.is_ajax():
-        if request.method == 'GET':
-            id = request.GET.get('id')
-            idc = request.GET.get('idc')
-            client = request.GET.get('client')
-            tgt_type = request.GET.get('tgt_type')
-            tgt  = request.GET.get('tgt','')
-            fun = request.GET.get('fun')
-            arg = request.GET.get('arg','')
-            user  = request.user.username
-            if id:
-                r=Result.objects.get(id=id)
-                result = json.loads(r.result) #result.html默认从数据库中读取
-                return JsonResponse(result,safe=False)
-
-            try:
-                salt_server = SaltServer.objects.get(idc=idc,role='Master') #根据机房ID选择对应salt服务端
-                sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-                if re.search('runner',client) or re.search('wheel',client):
-                    result=sapi.SaltRun(client=client,fun=fun,arg=arg)
-                else:
-                    result = sapi.SaltCmd(client=client,tgt=tgt,fun=fun,arg=arg,expr_form=tgt_type)
-
-                if re.search('async',client):
-                    jid = result['return'][0]['jid']
-                    # minions = ','.join(result['return'][0]['minions'])
-                    r=Result(client=client,jid=jid,minions=tgt,fun=fun,arg=arg,tgt_type=tgt_type,idc_id=idc,user=user)
-                    res=r.jid #异步命令只返回JID，之后JS会调用jid_info
-                else:
-                    res=result['return'][0]#同步命令直接返回结果
-                    r=Result(client=client,minions=tgt,fun=fun,arg=arg,tgt_type=tgt_type,idc_id=idc,user=user,result=json.dumps(res))
-                r.save()
-                # res=model_to_dict(r,exclude='result')
-                return JsonResponse(res,safe=False)
-            except Exception as error:
-                return JsonResponse({'Error':"%s"%error},safe=False)
-
-    else:
-        idc_list= IDC.objects.all()
-        result_list = Result.objects.order_by('-id')
-        return render(request, 'SALT/result.html', locals())
+    result_list = Result.objects.order_by('-id')
+    return render(request, 'SALT/result.html', locals())
 #任务信息
 @login_required
 def jid_info(request):
@@ -289,228 +309,11 @@ def jid_info(request):
             if r.result and r.result!='{}' :
                 result = json.loads(r.result) #cmd_result.html默认从数据库中读取
             else:
-                idc = r.idc_id
-                salt_server = SaltServer.objects.get(idc=idc,role='Master')
-                sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
+                sapi = SaltAPI(url=r.server.url,username=r.server.username,password=r.server.password)
                 jid_info=sapi.SaltJob(jid)
                 result = jid_info['info'][0]['Result']
                 r.result=json.dumps(result)
                 r.save()
-            return JsonResponse(result,safe=False)
-        except Exception as error:
-            return JsonResponse({'error':error},safe=False)
-#命令执行
-@login_required
-def execute(request):
-    idc_list = IDC.objects.order_by('name')
-    module_list=Module.objects.filter(client='execution').order_by('name')
-    idc=request.GET.get('idc',idc_list[0].id)
-    context={'idc_list':idc_list,'module_list':module_list,'idc':long(idc)}
-    try:
-        salt_server = SaltServer.objects.get(idc=idc,role='Master')
-        context['salt_server']=salt_server
-        sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-        result=sapi.SaltRun(client='runner',fun='manage.status')
-        context['minions_up']=result['return'][0]['up']
-        context['minions_down']=result['return'][0]['down']
-    except Exception as error:
-        context['error']=error
-    return render(request,'SALT/execute.html',context)
-@login_required
-def config(request,server_id):
-    server_list=SaltServer.objects.all()
-    salt_server = SaltServer.objects.get(id=server_id)
-    context={'server_list':server_list,'salt_server':salt_server}
-    sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-    result=sapi.SaltRun(client='wheel',fun='config.values')
-    configs=result['return'][0]['data']['return']
-    context['envs']=sorted(configs['file_roots'].keys())
-    # context['envs']=sapi.SaltRun(client='runner',fun='fileserver.envs')['return'][0]
-    if request.is_ajax() :
-        env=request.GET.get('env')
-        file=request.GET.get('file')
-        content=request.GET.get('content')
-        if env:
-            if file:
-                if content:#写入文件内容，文件会产生[noeol]问题，因此需要在内容最后加个结束符\n
-                    try:
-                        r=sapi.SaltRun(client='wheel',fun='file_roots.write',path=file,data=content+'\n',saltenv=env)
-                        # r=sapi.SaltRun(client='wheel',fun='config.update_config',file_name='test',yaml_contents='{a:1}')
-                        success=r['return'][0]['data']['success']
-                        if success:
-                            res=u"文件%s保存成功！"%file
-                        else:
-                            res=u"文件%s保存失败！"%file
-                    except Exception as error:
-                        res=str(error)
-                else:#读取环境下文件内容
-                    try:
-                        path=configs['file_roots'][env][0]+file #每个环境最好只定义一个目录
-                        r=sapi.SaltRun(client='wheel',fun='file_roots.read',path=path,saltenv=env)
-                        res=r['return'][0]['data']['return']
-                        if isinstance(res,str):
-                            res={'Error':res}
-                        else:
-                            res=res[0]
-                    except Exception as error:
-                        res={'Error':str(error)}
-            else:#列出环境下的文件
-                try:
-                    res=sapi.SaltRun(client='runner',fun='fileserver.file_list',saltenv=env)['return'][0]
-                    # res=[]
-                    # for f in fs:
-                    #     if not re.search('.svn',f) and not re.search('pki/',f):
-                    #         res.append(f)
-                    res=sapi.SaltRun(client='runner',fun='fileserver.file_list',saltenv=env)['return'][0] #.svn .git已在files.conf配置中过滤
-                except Exception as error:
-                    res=[str(error)]
-        else:
-            res=None
-        return JsonResponse(res,safe=False)
-
-    else:
-        return render(request,'SALT/config.html',context)
-#代码发布
-@login_required
-def deploy(request,server_id):
-    server_list=SaltServer.objects.all()
-    try:
-        salt_server = SaltServer.objects.get(id=server_id)
-    except:#id不存在时返回第一个
-        salt_server = SaltServer.objects.all()[0]
-
-    project_list=SvnProject.objects.filter(salt_server=salt_server).order_by('host')
-    context={'server_list':server_list,'salt_server':salt_server,'project_list':project_list}
-
-    try:
-        sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-        result=sapi.SaltRun(client='runner',fun='manage.status')
-        context['minions_up']=result['return'][0]['up']
-        #刷新页面检测并更新项目状态
-        for project in project_list:
-            path=project.path+'/'+project.target
-            svn_info=sapi.SaltCmd(client='local',tgt=project.host,fun='svn.info',arg=path,arg1='fmt=dict')['return'][0][project.host][0]
-            if isinstance(svn_info,dict):
-                if project.url == svn_info['URL']:
-                    project.status=u"已发布"
-                    project.info=u"最近修改时间：%s\n最近修改版本：%s\n最新版本：%s"%(svn_info["Last Changed Date"][0:20],svn_info["Last Changed Rev"],svn_info["Revision"])
-                else:
-                    project.status=u"冲突"
-                    project.info=u"SVN路径不匹配：\n本地SVN为'%s'\n项目SVN为'%s'"%(svn_info['URL'],project.url)
-                # project.save()
-            else:
-                #根路径不存在时创建
-                if not sapi.SaltCmd(client='local',tgt=project.host,fun='file.directory_exists',arg=project.path)['return'][0][project.host]:
-                    sapi.SaltCmd(client='local',tgt=project.host,fun='file.mkdir',arg=project.path)
-                #目录未被版本控制，可能SVN未安装
-                if not sapi.SaltCmd(client='local',tgt=project.host,fun='pkg.version',arg='subversion')['return'][0][project.host]:
-                    sapi.SaltCmd(client='local',tgt=project.host,fun='pkg.install',arg='subversion')
-                #签出项目、获取信息并存入库
-                sapi.SaltCmd(client='local',tgt=project.host,fun='svn.checkout',arg=project.path,arg0='target=%s'%project.target,arg1='remote=%s'%project.url,arg2='username=%s'%project.username,arg3='password=%s'%project.password)
-                project.info=sapi.SaltCmd(client='local',tgt=project.host,fun='svn.info',arg=path,arg1='fmt=dict')['return'][0][project.host][0]
-                project.status=u"已发布"
-            project.save()
-    except Exception as error:
-        context['error']=error
-
-
-    return render(request,'SALT/deploy.html',context)
-#SVN提交、更新
-@login_required
-def deploy_fun(request,server_id):
-    print server_id
-    #SVN功能按钮
-    if request.is_ajax() and request.method == 'GET':
-        tgt=request.GET.get('tgt','')
-        path=request.GET.get('path','').encode("utf-8")
-        active=request.GET.get('active','')
-        project_id=request.GET.get('project_id','')
-
-        try:
-            salt_server = SaltServer.objects.get(id=server_id)
-            sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-            if project_id:
-                project=SvnProject.objects.get(id=project_id)#指定项目
-                path=project.path+'/'+project.target
-                tgt=project.host
-            else:
-                project=None                                #项目不存在
-                projects=SvnProject.objects.filter(host=tgt)
-                for p in projects:
-                    if path.startswith(p.path+'/'+p.target): #项目子目录
-                        project=p
-            #SvnProject里没有记录时自动创建，但密码需要在后台设置
-            if not project:
-                svn_info=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.info',arg=path,arg1='fmt=dict')['return'][0][tgt][0]
-                if isinstance(svn_info,dict):
-                    result = {'ret':False,'msg':u'SVN项目不存在，请在后台页面添加！','add':True}
-                else:
-                    result = {'ret':False,'msg':u'错误：%s'%svn_info}
-            #提交
-            elif active=='commit' or active=='update':
-                status=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.status',arg=path)['return'][0][tgt]
-                for s in status.split('\n'):
-                    l=s.split(' ')
-                    if l[0]=='?':
-                        sapi.SaltCmd(client='local',tgt=tgt,fun='svn.add',arg=path,arg0=path+'/'+l[-1],arg2='username=%s'%project.username,arg3='password=%s'%project.password)
-                    elif l[0]=='!':
-                        sapi.SaltCmd(client='local',tgt=tgt,fun='svn.remove',arg=path,arg0=path+'/'+l[-1],arg2='username=%s'%project.username,arg3='password=%s'%project.password)
-                ci=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.commit',arg=path,arg1='msg=commit from %s'%tgt,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
-                result = {'ret':True,'msg':u"提交成功！\n%s"%ci}
-                #更新（先提交否则会冲突）
-                if active=='update':
-                    up=sapi.SaltCmd(client='local',tgt=tgt,fun='svn.update',arg=path,arg2='username=%s'%project.username,arg3='password=%s'%project.password)['return'][0][tgt]
-                    result = {'ret':True,'msg':u"提交成功！\n%s\n更新成功！\n%s"%(ci,up)}
         except Exception as e:
-            result = {'ret':False,'msg':u'错误：%s' % e}
-        return JsonResponse(result,safe=False)
-#应用部署
-@login_required
-def state(request,server_id):
-    server_list=SaltServer.objects.all()
-    try:
-        salt_server = SaltServer.objects.get(id=server_id)
-    except:#id不存在时返回第一个
-        salt_server = SaltServer.objects.all()[0]
-
-    minion_list=Minions.objects.filter(status="Accepted")
-    context={'server_list':server_list,'salt_server':salt_server,'minion_list':minion_list}
-
-    try:
-        sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-        context['envs']=sapi.SaltRun(client='runner',fun='fileserver.envs')['return'][0]
-    except Exception as error:
-        context['error']=error
-
-    return render(request,'SALT/state.html',context)
-
-@login_required
-def state_fun(request,server_id):
-    if request.is_ajax() and request.method == 'GET':
-        tgt=request.GET.get('tgt','')
-        env=request.GET.get('env','')
-        state=request.GET.get('state','')
-        states=[]
-        try:
-            salt_server = SaltServer.objects.get(id=server_id)
-            sapi = SaltAPI(url=salt_server.url,username=salt_server.username,password=salt_server.password)
-            if env:
-                if state and tgt:
-                    arg=state.rstrip(',')
-                    result=sapi.SaltCmd(client='local',tgt=tgt,fun='state.sls',arg=arg,arg1='saltenv=%s'%env,expr_form='list')['return'][0]
-                else:
-                    roots=sapi.SaltRun(client='wheel',fun='file_roots.list_roots')['return'][0]['data']['return']
-                    dirs=roots[env][0]                #dirs={"/srv/salt/prod/":{}}
-                    for root,dirs in dirs.items():   #root="/srv/salt/prod/"  dirs={"init":{"epel.sls":"f",}}
-                        for dir,files in dirs.items():         #dir='init' or 'top.sls'    files={"epel.sls":"f",}
-                            if  dir == '.svn' :pass
-                            elif files == "f" and dir.endswith('.sls'):
-                                states.append(dir[0:-4])
-                            elif isinstance(files,dict):
-                                for sls,f in files.items():
-                                    if f=='f' and sls.endswith('.sls'):
-                                        states.append('%s.%s'%(dir,sls[0:-4]))
-                    result=sorted(states)
-        except Exception as e:
-            result = str(e)
+            result={'error':str(e)}
         return JsonResponse(result,safe=False)

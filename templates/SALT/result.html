@@ -72,7 +72,7 @@
     <script src="{% static 'salt/js/formatJSON.js' %}"></script>
     <script>
     function result(id){
-        $.getJSON("{% url 'salt:result' %}",{id:id},function(result){
+        $.getJSON("{% url 'salt:execute_fun' 0 %}",{id:id},function(result){
             var rv=document.getElementById('result_data');
             rv.value="";
             for (var k in result) {

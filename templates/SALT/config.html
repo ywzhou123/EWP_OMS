@@ -72,7 +72,7 @@
     $('#env').click(function(){
         var env=$(this).val() ;
         $('#file').html("");
-        $.getJSON("{% url 'salt:config' salt_server.id %}", {env: env}, function (result) {
+        $.getJSON("{% url 'salt:config_fun' salt_server.id %}", {env: env}, function (result) {
              for (var i = result.length - 1; i >= 0; i--) {
                  $("<option value='"+result[i]+"'>"+result[i]+"</option>").appendTo("#file");
              }
@@ -83,7 +83,7 @@
     $('#file').click(function(){
         var file=$(this).val() ;
         var env=$('#env').val() ;
-        $.getJSON("{% url 'salt:config' salt_server.id %}", {env: env,file:file}, function (result) {
+        $.getJSON("{% url 'salt:config_fun' salt_server.id %}", {env: env,file:file}, function (result) {
             var rv=document.getElementById('content');
             for (var k in result){
                 rv.value=result[k];
@@ -97,7 +97,7 @@
         var env=$('#env').val() ;
         var file=$('#file').val();
         var content=$('#content').val() ;
-        $.getJSON("{% url 'salt:config' salt_server.id %}", {env:env,file:file,content:content}, function (result) {
+        $.getJSON("{% url 'salt:config_fun' salt_server.id %}", {env:env,file:file,content:content}, function (result) {
             alert(result);
         });
 

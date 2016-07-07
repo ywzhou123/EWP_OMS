@@ -51,7 +51,7 @@ class Result(models.Model):
     minions = models.CharField(max_length=500,blank=True,verbose_name=u'目标主机')
     result = models.TextField(blank=True,verbose_name=u'返回结果')
     #其他信息
-    idc_id = models.IntegerField(verbose_name=u'Salt接口')
+    server = models.ForeignKey(SaltServer,verbose_name=u'所属Salt服务器')
     user = models.CharField(max_length=50,verbose_name=u'操作用户')
     datetime =models.DateTimeField(auto_now_add=True,verbose_name=u'执行时间')
     def __unicode__(self):

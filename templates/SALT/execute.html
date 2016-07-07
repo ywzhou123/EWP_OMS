@@ -17,7 +17,7 @@
     <div class="container">
         <h2>
             执行命令&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <small class="text-danger">{{ salt_server.url }}</small>
+            <small class="text-danger">{{ salt_server.idc.name }} -- {{ salt_server.url }} -- {{ salt_server.role }}</small>
 {#        机房#}
             <label for="idc" disabled="disabled"></label>
             <div class="btn-group pull-right">
@@ -27,11 +27,16 @@
                     <span class="glyphicon glyphicon-plus"></span>&nbsp;命令</a>
                 <button class="btn btn-info" title="命令帮助信息" onclick="cmd_help()"  data-toggle="modal" data-target="#cmd_modal">
                     <span class="glyphicon glyphicon-question-sign"></span>&nbsp;帮助</button>
-                <select class="btn btn-info" id="idc" style="height: 34px;">
-                    {% for i in idc_list %}
-                        <option value="{{ i.id }}" {% if i.id == idc %}selected="selected"{% endif %}>{{ i }}</option>
-                    {% endfor %}
-                </select>
+            {#            Server选择#}
+                <div class="btn-group pull-right dropdown">
+                    <a href="#" class="btn btn-info dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                        &nbsp;SaltServer&nbsp;<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        {% for s in server_list %}
+                            <li><a href="{% url 'salt:execute' s.id%}">{{ s.idc.name }} -- {{ s.url }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
         </h2>
         {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
@@ -123,22 +128,22 @@
             <div class="col-sm-3 col-md-3">
 {#            在线主机#}
                 <div class="form-group">
-                     <label for="minions_up">在线Minions</label>
-                     <select class="form-control" size="10"  id="minions_up" >
-                         {% for u in minions_up %}
+                     <label for="minions_up">Minions</label>
+                     <select class="form-control" size="23"  id="minions_up" >
+                         {% for u in minion_list %}
                         <option value="{{ u }}">{{ u }}</option>
                         {% endfor %}
                      </select>
                  </div>
 {#            离线主机#}
-                <div class="form-group">
-                     <label for="minions_down">离线Minions</label>
-                     <select class="form-control" size="10" id="minions_down" disabled="disabled">
-                         {% for d in minions_down %}
-                        <option value="{{ d }}">{{ d }}</option>
-                        {% endfor %}
-                     </select>
-                 </div>
+{#                <div class="form-group">#}
+{#                     <label for="minions_down">离线Minions</label>#}
+{#                     <select class="form-control" size="10" id="minions_down" disabled="disabled">#}
+{#                         {% for d in minions_down %}#}
+{#                        <option value="{{ d }}">{{ d }}</option>#}
+{#                        {% endfor %}#}
+{#                     </select>#}
+{#                 </div>#}
             </div>
 {#            结果#}
             <div class="col-sm-9 col-md-9">
@@ -179,11 +184,6 @@
     <script src="{% static 'salt/js/formatJSON.js' %}"></script>
     <script>
         $(document).ready(function(){
-            //IDC切换
-            $('#idc').change(function(){
-                var idc=$(this).val();
-                window.location.href='{% url 'salt:execute' %}?idc='+idc;
-            });
             //类型条件
             $('#tgt_type').change(function(){
                 var tgt_type = $(this).val();
@@ -237,7 +237,6 @@
             });
             //执行按钮
             $('#run').click(function(){
-                var idc = $('#idc').val();
                 var client = $('#client').val();
                 var tgt_type = $('#tgt_type').val();
                 var tgt = $('#tgt').val();
@@ -247,14 +246,14 @@
                 var w=client.indexOf('wheel');
                 if( !tgt && r<0 && w<0 ){alert("目标不能为空！");}
                 else if(!fun){alert("请选择命令！");}
-                else {cmd_result(idc,client,tgt_type,tgt,fun,arg)}
+                else {cmd_result(client,tgt_type,tgt,fun,arg)}
             });
         });
         //设置一个定时器、一个计数器
         var timer;
         var count=0;
         //执行命令功能
-        function cmd_result(idc,client,tgt_type,tgt,fun,arg) {
+        function cmd_result(client,tgt_type,tgt,fun,arg) {
             var r=client.indexOf('runner');
             var w=client.indexOf('wheel');
             var s=client.indexOf('ssh');
@@ -265,9 +264,9 @@
             else{command = '[root@salt-master ~]# salt "'+tgt+'" '+fun+' '+arg+' expre_type="'+tgt_type+'"';}
             var rv=document.getElementById('result');
             rv.value=command;
-            $.getJSON("{% url 'salt:result' %}",{idc:idc,client:client,tgt_type:tgt_type,tgt:tgt,fun:fun,arg:arg},function(result){
+            $.getJSON("{% url 'salt:execute_fun' salt_server.id %}",{client:client,tgt_type:tgt_type,tgt:tgt,fun:fun,arg:arg},function(result){
                 if( a>=0 ) {//异步命令返回JID
-                    rv.value += "\n" + result;
+                    rv.value += "\nJID:" + result;
                     //通过JID向后台获取详细结果，每隔1秒执行
                     timer = window.setInterval(jid_info(result),1000);
                 }
