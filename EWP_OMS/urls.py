@@ -22,7 +22,7 @@ urlpatterns = [
     url(r'^auth/', include('AUTH.urls',namespace='auth')),
     url(r'^cmdb/', include('CMDB.urls', namespace="cmdb")),
     url(r'^salt/', include('SALT.urls', namespace="salt")),
-    # url(r'^zabbix/', include('zabbix.urls', namespace="zabbix")),
+    url(r'^zabbix/', include('ZABBIX.urls', namespace="zabbix")),
     # url(r'^cobber/', include('cobber.urls', namespace="cobber")),
     url(r'^admin/', include(admin.site.urls)),
 ]
