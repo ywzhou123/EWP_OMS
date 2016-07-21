@@ -29,6 +29,38 @@
         </h2>
         {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
         {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
+        <div class="row">
+            <div class="col-xs-2 col-md-2 col-lg-2">
+                <label for="name" class="sr-only"></label>
+                <input class="form-control" type="text" id="name" placeholder="输入主机名称">
+            </div>
+            <div class="col-xs-2 col-md-2 col-lg-2">
+                <label  for="ip" class="sr-only"></label>
+                <input class="form-control" type="text" id="ip" placeholder="输入主机IP地址">
+            </div>
+            <div class="col-xs-3 col-md-3 col-lg-3">
+                <label for="group" class="sr-only"></label>
+                <select class="form-control" id="group">
+                    <option value="">选择分组</option>
+                    {% for group in group_list %}
+                    <option value="{{ group.groupid }}">{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-xs-3 col-md-3 col-lg-3">
+                <label for="template" class="sr-only"></label>
+                <select class="form-control" id="template">
+                    <option value="">选择模板</option>
+                    {% for template in template_list %}
+                    <option value="{{ template.templateid }}">{{ template.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-xs-2 col-md-2 col-lg-2">
+                <button class="btn btn-default pull-right" type="button" id="create">添加主机</button>
+            </div>
+        </div>
+    <br>
         {% if host_list %}
         {% autopaginate host_list 20 %}
             <div class="table-responsive">
@@ -36,7 +68,6 @@
                     <thead>
                         <tr>
                             <th>Host</th>
-                            <th>HostId</th>
                             <th>Interfaces</th>
                             <th>Groups</th>
                             <th>Templates</th>
@@ -51,24 +82,20 @@
                         <tbody>
                             <tr>
                                 <td>{{ host.host }}</td>
-                                <td>{{ host.hostid }}</td>
                                 <td>{% for h in host.interfaces  %}
                                     {{ h.ip }}<br>
                                     {% endfor %}</td>
                                 <td>{% for h in host.groups  %}
                                     {{ h.name }}<br>
                                     {% endfor %}</td>
-                                <td>{% for h in host.parentTemplates  %}
-                                    {{ h.name }}<br>
-                                    {% endfor %}</td>
-                                <td><span class="badge">{{ host.items|length }}</span></td>
-                                <td><span class="badge">{{ host.triggers|length }}</span></td>
-                                <td>{% for h in host.graphs  %}
-                                    <a href="{% url 'zabbix:host' %}?graphid={{ h.graphid }}">{{ h.name }}</a><br>
-                                    {% endfor %}</td>
-                                <td>{% for h in host.screens  %}
-                                    {{ h.name }}<br>
-                                    {% endfor %}</td>
+{#                                <td>{% for h in host.parentTemplates  %}#}
+{#                                    {{ h.name }}<br>#}
+{#                                    {% endfor %}</td>#}
+                                <td><a href="{% url 'zabbix:template' %}?hostid={{ host.hostid }}">Templates&nbsp;<span class="badge">{{ host.parentTemplates|length }}</span></td>
+                                <td><a href="{% url 'zabbix:item' %}?hostid={{ host.hostid }}">Items&nbsp;<span class="badge">{{ host.items|length }}</span></a></td>
+                                <td><a href="{% url 'zabbix:item' %}?hostid={{ host.hostid }}">Triggers&nbsp;<span class="badge">{{ host.triggers|length }}</span></a></td>
+                                <td><a href="{% url 'zabbix:graph' %}?hostid={{ host.hostid }}">Graphs&nbsp;<span class="badge">{{ host.graphs|length }}</span></a></td>
+                                <td><a href="{% url 'zabbix:item' %}?hostid={{ host.hostid }}">Screens&nbsp;<span class="badge">{{ host.screens|length }}</span></a></td>
                                 <td>{% if host.status == '0' %}<label class="label label-success">Enable</label>
                                     {% else %}<label class="label label-danger">Disable</label>{% endif %}
                                 </td>
@@ -79,39 +106,18 @@
             </div>
             {% paginate %}
         {% endif %}
-    <div id="container" style="min-width:800px;height:400px"></div>
     </div>
 {% endblock %}
 {% block scripts %}
-{#// jQuery#}
-{#    <script src="http://cdn.hcharts.cn/jquery/jquery-1.8.3.min.js"></script>#}
-{#// Highcharts#}
-    <script src="http://cdn.hcharts.cn/highcharts/highcharts.js"></script>
     <script>
-    $(function () {
-    $('#container').highcharts({                   //图表展示容器，与div的id保持一致
-        chart: {
-            type: 'column'                         //指定图表的类型，默认是折线图（line）
-        },
-        title: {
-            text: 'My first Highcharts chart'      //指定图表标题
-        },
-        xAxis: {
-            categories: ['my', 'first', 'chart']   //指定x轴分组
-        },
-        yAxis: {
-            title: {
-                text: 'something'                  //指定y轴的标题
-            }
-        },
-        series: [{                                 //指定数据列
-            name: 'Jane',                          //数据列名
-            data: [1, 0, 4]                        //数据
-        }, {
-            name: 'John',
-            data: [5, 7, 3]
-        }]
-    });
-});
+        $('#create').click(function(){
+            var name=$('#name').val();
+            var ip=$('#ip').val();
+            var groupid=$('#group').val();
+            var templateid=$('#template').val();
+            $.getJSON("{% url 'zabbix:host_create' %}",{name:name,ip:ip,groupid:groupid,templateid:templateid},function(result){
+                alert(result);
+            });
+        });
     </script>
 {% endblock %}

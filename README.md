@@ -7,13 +7,21 @@
 
 >show databases;
 
->create database ewp_oms;
+>create database ewp_oms character set utf8;
+
+>mysql> grant all on ewp_oms.* to 'admin'@'localhost' identified by "abc@123";
+
+>mysql> flush privileges;
 
 >use ewp_oms;
 
 >进入项目路径执行数据库同步
 
 >python manage.py migrate
+
+>创建管理员账号(登陆页面及后台管理)
+
+>python manage.py createsuperuser
 
 
 ##  目前已实现功能：

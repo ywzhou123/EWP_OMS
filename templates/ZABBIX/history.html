@@ -1,0 +1,46 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% block title %}
+    <title>Zabbix主机</title>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>
+            Zabbix主机列表
+
+        </h2>
+        {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
+        {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+{#// jQuery#}
+{#    <script src="http://cdn.hcharts.cn/jquery/jquery-1.8.3.min.js"></script>#}
+{#// Highcharts#}
+    <script src="http://cdn.hcharts.cn/highcharts/highcharts.js"></script>
+    <script>
+    $(function () {
+    $('#container').highcharts({                   //图表展示容器，与div的id保持一致
+        chart: {
+            type: 'area'                         //指定图表的类型，默认是折线图（line）
+        },
+        title: {
+            text: '{{ history.hostname }}{{ history.itemname }}'      //指定图表标题
+        },
+        xAxis: {
+            categories: ['my', 'first', 'chart']   //指定x轴分组
+        },
+        yAxis: {
+            title: {
+                text: 'something'                  //指定y轴的标题
+            }
+        },
+        series: [{                                 //指定数据列
+            name: 'Jane',                          //数据列名
+            data: {{ history.value }}                        //数据
+        }]
+    });
+});
+    </script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% load pagination_tags %}
+{% block title %}
+    <title>Graph列表</title>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>
+            Graph列表
+            <div class="btn-group pull-right">
+                <div class="btn-group">
+                    <label for="host" class="sr-only"></label>
+                    <select class="form-control" id="host">
+                        <option value="">选择主机</option>
+                        {% for host in host_list %}
+                            <option value="{{ host.hostid }}" >{{ host.host }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <label for="graph" class="sr-only"></label>
+                    <select class="form-control" id="graph" onchange="GetGraph()">
+                        <option value="">选择图像</option>
+                        {% for graph in graph_list %}
+                            <option value="{{ graph.graphid }}"><span title="{{ graph.name }}">{{ graph.name|truncatechars:40 }}</span></option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <label for="period" class="sr-only"></label>
+                    <select class="form-control" id="period" onchange="GetGraph()">
+                        <option value="3600">选择时间</option>
+                        <option value="3600">1小时</option>
+                        <option value="7200">2小时</option>
+                        <option value="86400">一天</option>
+                        <option value="604800">一周</option>
+                        <option value="2592000">一个月</option>
+                    </select>
+                </div>
+                <button class="btn btn-default" onclick="GetGraph()" title="刷新"><span class="glyphicon glyphicon-refresh"></span></button>
+            </div>
+        </h2>
+        {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
+        {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
+
+        <hr>
+        <div class="row">
+{#            <div class="col-xs-3 col-md-3 col-lg-3">#}
+{#                {% autopaginate graph_list 15 %}#}
+{#                    {% for graph in graph_list %}#}
+{#                        <button class="btn btn-primary btn-sm" onclick="GetGraph('{{ graph.graphid }}','{{ graph.name }}','3600')" title="显示图片" >#}
+{#                            {{ graph.name }}#}
+{#                        </button><br>#}
+{#                    {% endfor %}#}
+{#                {% paginate %}#}
+{#            </div>#}
+            <div class="col-xs-12 col-md-12 col-lg-12">
+                <img id="img" src="" style="width:100%">
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block scripts %}
+    <script>
+        $(function(){
+             $("#host").val("{{ hostid }}");
+        });
+        $('#host').change(function(){
+            var hostid=$(this).val();
+            if (!hostid){alert("请选择主机！")}
+            else{window.location.href="{% url 'zabbix:graph' %}?hostid="+hostid;}
+        });
+        function GetGraph(){
+            var period=$('#period').val();
+            var graphid=$('#graph').val();
+            if(!graphid){alert("请选择一个图像对象！")}
+            else{$('#img').attr("src","{{ graphurl }}?graphid="+graphid+"&period="+period);}
+        }
+    </script>
+{% endblock %}

@@ -30,17 +30,17 @@ class ZabbixAPI:
         result = urllib2.urlopen(request)
         response = json.loads(result.read())
         try:
-            print response['result']
+            # print response['result']
             return response['result']
         except KeyError:
             raise KeyError
     #主机列表
-    def HostGet(self,ip=None):
+    def HostGet(self,hostid=None,hostip=None):
         data = {
             "jsonrpc":"2.0",
             "method":"host.get",
             "params":{
-                "output":["status","hostid","host"],
+                "output":"extend",
                 "selectGroups": "extend",
                 "selectParentTemplates": ["templateid","name"],
                 "selectInterfaces": ["interfaceid","ip"],
@@ -54,36 +54,100 @@ class ZabbixAPI:
             "auth": self.__token_id,
             "id":1,
         }
+        if hostid:
+            data["params"]={
+                "output": "extend",
+                "hostids": hostid,
+                "sortfield": "name"
+            }
         return  self.PostRequest(data)
-    #主机组列表
-    def HostGroupGet(self,id=None):
+    #主机列表
+    def HostCreate(self,hostname,hostip,groupid=None,templateid=None):
         data = {
             "jsonrpc":"2.0",
-            "method":"host.get",
+            "method":"host.create",
+            "params": {
+                "host": hostname,
+                "interfaces": [
+                    {
+                        "type": 1,
+                        "main": 1,
+                        "useip": 1,
+                        "ip": hostip,
+                        "dns": "",
+                        "port": "10050"
+                    }
+                ],
+                "groups": [
+                    {
+                        "groupid": groupid
+                    }
+                ],
+                "templates": [
+                    {
+                        "templateid": templateid
+                    }
+                ]
+            },
+            "auth": self.__token_id,
+            "id":1,
+        }
+        return  self.PostRequest(data)
+
+    #主机组列表
+    def HostGroupGet(self,hostid=None,itemid=None):
+        data = {
+            "jsonrpc":"2.0",
+            "method":"hostgroup.get",
             "params":{
-                "output":["status","hostid","host"],
-                "selectGroups": "extend",
-                "selectParentTemplates": ["templateid","name"],
-                "selectInterfaces": ["interfaceid","ip"],
-                "selectInventory": ["os"],
-                "selectItems":["itemid","name"],
-                "selectGraphs":["graphid","name"],
-                "selectApplications":["applicationid","name"],
-                "selectTriggers":["triggerid","name"],
-                "selectScreens":["screenid","name"]
+                "output": "extend",
+                "hostids": hostid,
+                "itemids": itemid,
+                "sortfield": "name"
+            },
+            "auth": self.__token_id,
+            "id":1,
+        }
+        return  self.PostRequest(data)
+    #监控项列表
+    def ItemGet(self,hostid=None,itemid=None):
+        data = {
+            "jsonrpc":"2.0",
+            "method": "item.get",
+            "params": {
+                "output": "extend",
+                "hostids": hostid,
+                "itemids": itemid,
+                "sortfield": "name"
+            },
+            "auth": self.__token_id,
+            "id":1,
+        }
+        return  self.PostRequest(data)
+    #模板列表
+    def TemplateGet(self, hostid=None,templateid=None):
+        data = {
+            "jsonrpc":"2.0",
+            "method": "template.get",
+            "params": {
+                "output": "extend",
+                "hostids": hostid,
+                "templateids": templateid,
+                "sortfield": "name"
             },
             "auth": self.__token_id,
             "id":1,
         }
         return  self.PostRequest(data)
     #图像列表
-    def GraphGet(self,id=None):
+    def GraphGet(self,hostid=None,graphid=None):
         data = {
             "jsonrpc":"2.0",
             "method": "graph.get",
             "params": {
                 "output": "extend",
-                "graphids": id,
+                "hostids": hostid,
+                "graphids": graphid,
                 "sortfield": "name"
             },
             "auth": self.__token_id,
@@ -91,14 +155,14 @@ class ZabbixAPI:
         }
         return  self.PostRequest(data)
     #历史数据
-    def History(self,id=None):
+    def History(self,itemid=None):
         data = {
             "jsonrpc": "2.0",
             "method": "history.get",
             "params": {
                 "output": "extend",
                 "history": 0,
-                "itemids": id,
+                "itemids": itemid,
                 "sortfield": "clock",
                 "sortorder": "DESC",
                 "limit": 10

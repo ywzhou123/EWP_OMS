@@ -1,0 +1,14 @@
+{% extends "AUTH/navbar.html" %}
+{% load staticfiles %}
+{% block title %}
+    <title>Zabbix主机</title>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <h2>
+            Zabbix主机列表
+        </h2>
+        {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
+        {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
+    
+{% endblock %}
