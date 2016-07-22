@@ -117,11 +117,38 @@
 
 ![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/resultinfo.png)
 
+### Zabbix监控
+>Zabbix3.0下载地址：http://www.zabbix.com/download.php
+>API接口文档地址：https://www.zabbix.com/documentation/3.0/manual/api
+>下载Zabbix Appliance Zabbix 3.0 LTS Installation CD/DVD (.iso)进行快速安装
+>在EWP_OMS\config.ini中定义相关连接参数
+
+## Host列表：
+>目前实现了简单的添加监控主机功能（后续会和cmdb、salt整合），及显示监控主机信息，点击相关对象链接跳转到对象详细页面
+![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/zbx-host.png)
+
+## Item列表：
+>显示监控项信息，点击名称显示其监控图，方法是直接调取zabbix服务端img图片，默认1小时，可选择时间范围及手动刷新
+![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/zbx-item.png)
+
+>点击最近数值LASTVALUE可以查看HighChart画的图，数据是通过ZBX API的history.get命令获取。
+![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/zbx-history.png)
+
+## Graph列表：
+>同样是直接调取zabbix服务端graph的img图片进行显示，可选择时间范围及手动刷新
+![](https://raw.githubusercontent.com/ywzhou123/EWP_OMS/master/static/screen/zbx-graph.png)
+
+## Template列表：
+>等待中。。。
+
+## Group列表
+>等待中。。。
+
 ## 近期规划：
 
->Zabbix监控
+>虚拟化平台管理：Esxi XenServer KVM （hyper-V就算了，能不用win的地方尽量不用），实现模板管理、虚拟机管理、迁移复制管理、自动扩容管理等等
 
->Cobber初装
+>Cobber初装(实测不太好用，对windows、esxi、xen、ubuntu等支持不太好，放弃)
 
 
 

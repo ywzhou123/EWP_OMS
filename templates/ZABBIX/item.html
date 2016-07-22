@@ -9,6 +9,7 @@
         <h2>
             Item列表
             <div class="btn-group pull-right">
+                <div id="itemid" class="sr-only"></div>
                 <div class="btn-group">
                     <label for="host" class="sr-only"></label>
                     <select class="form-control" id="host">
@@ -29,7 +30,7 @@
 {#                </div>#}
                 <div class="btn-group">
                     <label for="period" class="sr-only"></label>
-                    <select class="form-control" id="period" onchange="GetItem()">
+                    <select class="form-control" id="period" onchange="GetItem($('#itemid').html())">
                         <option value="3600">选择时间</option>
                         <option value="3600">1小时</option>
                         <option value="7200">2小时</option>
@@ -38,12 +39,12 @@
                         <option value="2592000">一个月</option>
                     </select>
                 </div>
-                <button class="btn btn-default" onclick="GetItem()" title="刷新"><span class="glyphicon glyphicon-refresh"></span></button>
+                <button class="btn btn-default" onclick="GetItem($('#itemid').html())" title="刷新"><span class="glyphicon glyphicon-refresh"></span></button>
             </div>
         </h2>
         {% if error %}<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ error }}</div>{% endif %}
         {% if success %}<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>{{ success }}</div>{% endif %}
-
+        <hr>
         <img id="img" src="" style="width:100%">
         {% if item_list %}
         {% autopaginate item_list 20 %}
@@ -69,8 +70,8 @@
                             <td>{{ item.delay }}sec</td>
                             <td>{{ item.history }}day</td>
                             <td>{{ item.trends }}day</td>
-                            <td>{{ item.lastns }}</td>
-                            <td class="text text-danger">{{ item.lastvalue }}</td>
+                            <td>{{ item.lastclock }}</td>
+                            <td class="text text-danger"><a href="{% url 'zabbix:history' %}?itemid={{ item.itemid }}&datatype={{ item.data_type }}" target="_blank">{{ item.lastvalue }}</a></td>
                             <td>{% if item.status == '0' %}<label class="label label-success">Enable</label>
                                 {% else %}<label class="label label-danger">Disable</label>{% endif %}
                             </td>
@@ -96,6 +97,7 @@
         function GetItem(itemid){
             var period=$('#period').val();
 {#            var itemid=$('#item').val();#}
+            $('#itemid').html(itemid);
             if(!itemid){alert("请选择一个监控对象！")}
             else{$('#img').attr("src","{{ itemurl }}?itemids="+itemid+"&period="+period);}
         }

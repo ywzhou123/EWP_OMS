@@ -155,17 +155,17 @@ class ZabbixAPI:
         }
         return  self.PostRequest(data)
     #历史数据
-    def History(self,itemid=None):
+    def History(self,itemid,data_type):
         data = {
             "jsonrpc": "2.0",
             "method": "history.get",
             "params": {
                 "output": "extend",
-                "history": 0,
+                "history": data_type,
                 "itemids": itemid,
                 "sortfield": "clock",
                 "sortorder": "DESC",
-                "limit": 10
+                "limit": 30
             },
             "auth": self.__token_id,
             "id": 2

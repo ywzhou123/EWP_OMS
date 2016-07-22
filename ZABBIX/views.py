@@ -63,12 +63,12 @@ def item(request):
         zapi=ZabbixAPI()
         host_list=zapi.HostGet()
         if hostid:
-            item_list=zapi.ItemGet(hostid)
+            item_list=zapi.ItemGet(hostid=hostid)
         else:
             item_list=zapi.ItemGet()
         #时间戳转化成日期格式
         for item in item_list:
-            item['lastns']= time.strftime('%Y/%m/%d %H:%M', time.localtime(float(item['lastns'])))
+            item['lastclock']= time.strftime('%Y/%m/%d %H:%M', time.localtime(float(item['lastclock'])))
     except Exception as e:
         error=str(e)
     return render(request, 'ZABBIX/item.html', locals())
@@ -84,7 +84,6 @@ def graph(request):
         host_list=zapi.HostGet()
         if hostid:
             graph_list=zapi.GraphGet(hostid=hostid)
-            print graph_list
         else:
             graph_list=zapi.GraphGet()
     except Exception as e:
@@ -96,11 +95,20 @@ def screen(request):
 @login_required
 def history(request):
     itemid=request.GET.get('itemid','')
+    data_type=request.GET.get('data_type','0')
+    print data_type
     try:
         zapi=ZabbixAPI()
         if itemid:
-            history=zapi.History(itemid)
-            print history
+            value=[]
+            clock=[]
+            item=zapi.ItemGet(itemid=itemid)[0]
+            host=zapi.HostGet(hostid=item['hostid'])[0]
+            history_list=zapi.History(itemid,int(data_type))
+            for history in history_list:
+                value.append(float(history['value']))
+                clock.append(time.strftime('%Y/%m/%d %H:%M', time.localtime(float(history['clock']))))
+            print history_list
     except Exception as e:
         error=str(e)
     return render(request, 'ZABBIX/history.html', locals())
